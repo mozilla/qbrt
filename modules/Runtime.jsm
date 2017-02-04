@@ -3,50 +3,57 @@
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
-
 const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
-Cu.import("resource://gre/modules/Services.jsm");
+const { NetUtil } = Cu.import("resource://gre/modules/NetUtil.jsm", {});
+const { Services } = Cu.import("resource://gre/modules/Services.jsm", {});
 
 this.EXPORTED_SYMBOLS = ["Runtime"];
 
+const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].
+                        createInstance(Ci.nsIPrincipal);
+
+const sandbox = new Cu.Sandbox(systemPrincipal, {
+  // Eventually we should set wantsComponents: false and give the script
+  // a more standard mechanism for accessing system APIs, like an ES6 module
+  // loader.  But for now we provide Components.
+  wantComponents: true,
+});
+
+// For convenience, provide the console object by default.
+sandbox.console = console;
+
 this.Runtime = {
-  start: function(uri) {
-    let features = [
-      "chrome",
-      "close",
-      "dialog=no",
-      "extrachrome",
-      "resizable",
-      "scrollbars",
-      "width=1024",
-      "height=740",
-      "titlebar=no",
-    ];
+  start(uri) {
+    if (uri.scheme !== 'file') {
+      throw new Error('cannot start app from URL with spec ' + uri.scheme);
+    }
 
-    let window = Services.ww.openWindow(null, uri.spec, "_blank", features.join(","), null);
+    const src = this._readURI(uri);
+    Cu.evalInSandbox(src, sandbox, "latest", "fixme", 1);
+  },
 
-    window.addEventListener("mozContentEvent", function(event) {
-      switch (event.detail.type) {
-        case "shutdown-application":
-          Services.startup.quit(Services.startup.eAttemptQuit);
-          break;
-        case "minimize-native-window":
-          window.minimize();
-          break;
-        case "toggle-fullscreen-native-window":
-          window.fullScreen = !window.fullScreen;
-          break;
-        // Warn if we receive an event that isn't supported.  This handles
-        // both named events that Browser.html is known to generate and others
-        // that we don't know about.
-        case "restart":
-        case "clear-cache-and-restart":
-        case "clear-cache-and-reload":
-        default:
-          console.warn(event.detail.type + " event not supported");
-          break;
-      }
-    }, false, true);
+  _readURI(uri) {
+    // Read the URI synchronously.
+    let channel = NetUtil.newChannel({
+      uri: uri,
+      loadUsingSystemPrincipal: true,
+    });
+    let stream = channel.open2();
+
+    let src = "";
+    let cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].
+                  createInstance(Ci.nsIConverterInputStream);
+    cstream.init(stream, "UTF-8", 0, 0);
+
+    let str = {};
+    let read = 0;
+    do {
+      read = cstream.readString(0xffffffff, str);
+      src += str.value;
+    } while (read != 0);
+    cstream.close();
+
+    return src;
   },
 
 };
