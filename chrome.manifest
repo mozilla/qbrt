@@ -1,1 +1,2 @@
 manifest components/CommandLineHandler.manifest
+manifest components/devtools-startup.manifest
