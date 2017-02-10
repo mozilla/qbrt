@@ -1,2 +1,8 @@
+interfaces components/jsinspector.xpt
+
+locale devtools en-US chrome/locale/devtools/client/
+locale devtools-shared en-US chrome/locale/devtools/shared/
+
 manifest components/CommandLineHandler.manifest
 manifest components/devtools-startup.manifest
+manifest chrome/devtools.manifest

@@ -1,0 +1,3 @@
+content devtools devtools/content/
+resource devtools devtools/modules/devtools/
+skin devtools classic/1.0 devtools/skin/
