@@ -29,7 +29,7 @@ this.Runtime = {
     }
 
     const src = this._readURI(uri);
-    Cu.evalInSandbox(src, sandbox, "latest", "fixme", 1);
+    Cu.evalInSandbox(src, sandbox, "latest", uri.path, 1);
   },
 
   _readURI(uri) {
