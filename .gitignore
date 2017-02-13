@@ -1,0 +1,3 @@
+# Ignore the copy of Firefox that the tool downloads and installs locally.
+Firefox.app
+firefox
