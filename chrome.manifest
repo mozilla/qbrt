@@ -1,8 +1,17 @@
-interfaces components/jsinspector.xpt
-
-locale devtools en-US chrome/locale/devtools/client/
-locale devtools-shared en-US chrome/locale/devtools/shared/
-
+# The manifest file for mzrt's command-line handler, which starts the runtime.
 manifest components/CommandLineHandler.manifest
-manifest components/devtools-startup.manifest
-manifest chrome/devtools.manifest
+
+# Resources needed to load devtools, which live in firefox/browser/ on Windows
+# and Linux and Firefox.app/Contents/Resources/ on Mac.
+
+interfaces firefox/browser/components/jsinspector.xpt
+locale devtools en-US firefox/browser/chrome/en-US/locale/en-US/devtools/client/
+locale devtools-shared en-US firefox/browser/chrome/en-US/locale/en-US/devtools/shared/
+manifest firefox/browser/components/devtools-startup.manifest
+manifest firefox/browser/chrome/devtools.manifest
+
+interfaces Firefox.app/Contents/Resources/browser/components/jsinspector.xpt os=Darwin
+locale devtools en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/client/ os=Darwin
+locale devtools-shared en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/shared/ os=Darwin
+manifest Firefox.app/Contents/Resources/browser/components/devtools-startup.manifest os=Darwin
+manifest Firefox.app/Contents/Resources/browser/chrome/devtools.manifest os=Darwin
