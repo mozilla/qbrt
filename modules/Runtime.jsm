@@ -19,10 +19,6 @@ const sandbox = new Cu.Sandbox(systemPrincipal, {
   wantComponents: true,
 });
 
-// For convenience, provide the console object by default.
-sandbox.console = console;
-sandbox.Services = Services;
-
 this.Runtime = {
   start(uri) {
     if (uri.scheme !== 'file') {
