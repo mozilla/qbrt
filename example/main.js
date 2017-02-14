@@ -15,4 +15,6 @@ const WINDOW_FEATURES = [
   "height=740",
 ].join(",");
 
+console.log("Hello, World!");
+
 Services.ww.openWindow(null, WINDOW_URL, "_blank", WINDOW_FEATURES, null);

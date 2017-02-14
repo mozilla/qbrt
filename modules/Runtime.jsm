@@ -9,17 +9,18 @@ const { Services } = Cu.import("resource://gre/modules/Services.jsm", {});
 
 this.EXPORTED_SYMBOLS = ["Runtime"];
 
-const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].
-                        createInstance(Ci.nsIPrincipal);
-
-const sandbox = new Cu.Sandbox(systemPrincipal, {
-  wantComponents: true,
-});
-
 this.Runtime = {
   start(appFile) {
     registerChromePrefix(appFile.parent.path);
-    Cu.evalInSandbox(readFile(appFile), sandbox, "latest", appFile.path, 1);
+
+    const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].
+                            createInstance(Ci.nsIPrincipal);
+
+    const sandbox = new Cu.Sandbox(systemPrincipal, {
+      wantComponents: true,
+    });
+
+    Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
   },
 };
 
