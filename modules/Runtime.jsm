@@ -13,56 +13,32 @@ const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].
                         createInstance(Ci.nsIPrincipal);
 
 const sandbox = new Cu.Sandbox(systemPrincipal, {
-  // Eventually we should set wantsComponents: false and give the script
-  // a more standard mechanism for accessing system APIs, like an ES6 module
-  // loader.  But for now we provide Components.
   wantComponents: true,
 });
 
 this.Runtime = {
-  start(uri) {
-    if (uri.scheme !== 'file') {
-      throw new Error('cannot start app from URL with spec ' + uri.scheme);
-    }
-
-    registerChromePrefix(uri);
-
-    const src = this._readURI(uri);
-    Cu.evalInSandbox(src, sandbox, "latest", uri.path, 1);
+  start(appFile) {
+    registerChromePrefix(appFile.parent.path);
+    Cu.evalInSandbox(readFile(appFile), sandbox, "latest", appFile.path, 1);
   },
-
-  _readURI(uri) {
-    // Read the URI synchronously.
-    let channel = NetUtil.newChannel({
-      uri: uri,
-      loadUsingSystemPrincipal: true,
-    });
-    let stream = channel.open2();
-
-    let src = "";
-    let cstream = Cc["@mozilla.org/intl/converter-input-stream;1"].
-                  createInstance(Ci.nsIConverterInputStream);
-    cstream.init(stream, "UTF-8", 0, 0);
-
-    let str = {};
-    let read = 0;
-    do {
-      read = cstream.readString(0xffffffff, str);
-      src += str.value;
-    } while (read != 0);
-    cstream.close();
-
-    return src;
-  },
-
 };
+
+function readFile(file) {
+  let stream = NetUtil.newChannel({
+    uri: file,
+    loadUsingSystemPrincipal: true,
+  }).open2();
+  let count = stream.available();
+  let data = NetUtil.readInputStreamToString(stream, count);
+  stream.close();
+  return data;
+}
 
 // XXX Clean up all this code, most of which is copied from some test head
 // and seems to contain some redundancy.
 
-function registerChromePrefix(uri) {
-  let file = uri.QueryInterface(Ci.nsIFileURL).file;
-  let manifestText = `content app ${file.parent.path}/`;
+function registerChromePrefix(path) {
+  let manifestText = `content app ${path}/`;
   createManifestTemporarily(gDirSvc.get("ProfD", Ci.nsIFile), manifestText);
 }
 

@@ -60,10 +60,10 @@ CommandLineHandler.prototype = {
 
     let appPath;
     try {
-      appPath = cmdLine.getArgument(0);
+      appPath = cmdLine.resolveFile(cmdLine.getArgument(0));
     } catch (e) {
       if (e.result == Cr.NS_ERROR_INVALID_ARG) {
-        dump("error: no app provided\n");
+        dump(`error: invalid app path: ${appPath}\n`);
         Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
         return;
       } else {
@@ -71,13 +71,13 @@ CommandLineHandler.prototype = {
       }
     }
 
-    let appURI = Services.io.newURI(appPath, null, Services.io.newFileURI(cmdLine.workingDirectory));
-    dump("Loading app at " + appPath + " with URI " + appURI.spec + "\n");
+    dump(`loading app: ${appPath.path}\n`);
 
     try {
-      Runtime.start(appURI);
+      Runtime.start(appPath);
     } catch(ex) {
-      dump("error starting app: " + ex + "\n");
+      dump(`error starting app: ${ex}\n`);
+      Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
     }
   },
 };
