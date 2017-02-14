@@ -74,7 +74,6 @@ CommandLineHandler.prototype = {
     let appURI = Services.io.newURI(appPath, null, Services.io.newFileURI(cmdLine.workingDirectory));
     dump("Loading app at " + appPath + " with URI " + appURI.spec + "\n");
 
-
     try {
       Services.startup.enterLastWindowClosingSurvivalArea();
       Runtime.start(appURI);
