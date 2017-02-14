@@ -1,17 +1,13 @@
 # The manifest file for mzrt's command-line handler, which starts the runtime.
 manifest components/CommandLineHandler.manifest
 
-# Resources needed to load devtools, which live in firefox/browser/ on Windows
-# and Linux and Firefox.app/Contents/Resources/ on Mac.
-
-interfaces firefox/browser/components/jsinspector.xpt
-locale devtools en-US firefox/browser/chrome/en-US/locale/en-US/devtools/client/
-locale devtools-shared en-US firefox/browser/chrome/en-US/locale/en-US/devtools/shared/
-manifest firefox/browser/components/devtools-startup.manifest
-manifest firefox/browser/chrome/devtools.manifest
-
-interfaces Firefox.app/Contents/Resources/browser/components/jsinspector.xpt os=Darwin
-locale devtools en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/client/ os=Darwin
-locale devtools-shared en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/shared/ os=Darwin
-manifest Firefox.app/Contents/Resources/browser/components/devtools-startup.manifest os=Darwin
-manifest Firefox.app/Contents/Resources/browser/chrome/devtools.manifest os=Darwin
+# Devtools live in the browser app inside the Firefox bundle, so they aren't
+# available by default when we run mzrt via firefox --app (bug 1244163).
+# We have to specify manifest instructions to make their resources available.
+#
+# And the resource location varies by OS, as they live in firefox/browser/
+# on Windows and Linux and Firefox.app/Contents/Resources/browser/ on Mac.
+#
+manifest devtools.manifest os=Linux
+manifest devtools.manifest os=WINNT
+manifest devtools-mac.manifest os=Darwin

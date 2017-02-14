@@ -1,0 +1,9 @@
+interfaces firefox/browser/components/interfaces.xpt
+locale devtools en-US firefox/browser/chrome/en-US/locale/en-US/devtools/client/
+locale devtools-shared en-US firefox/browser/chrome/en-US/locale/en-US/devtools/shared/
+content devtools firefox/browser/chrome/devtools/content/
+resource devtools firefox/browser/chrome/devtools/modules/devtools/
+skin devtools classic/1.0 firefox/browser/chrome/devtools/skin/
+component {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32} firefox/browser/components/devtools-startup.js
+contract @mozilla.org/devtools/startup-clh;1 {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32}
+category command-line-handler m-devtools @mozilla.org/devtools/startup-clh;1

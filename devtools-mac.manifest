@@ -1,0 +1,5 @@
+interfaces Firefox.app/Contents/Resources/browser/components/jsinspector.xpt
+locale devtools en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/client/
+locale devtools-shared en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/shared/
+manifest Firefox.app/Contents/Resources/browser/components/devtools-startup.manifest
+manifest Firefox.app/Contents/Resources/browser/chrome/devtools.manifest
