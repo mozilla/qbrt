@@ -75,12 +75,9 @@ CommandLineHandler.prototype = {
     dump("Loading app at " + appPath + " with URI " + appURI.spec + "\n");
 
     try {
-      Services.startup.enterLastWindowClosingSurvivalArea();
       Runtime.start(appURI);
     } catch(ex) {
-      Services.startup.exitLastWindowClosingSurvivalArea();
       dump("error starting app: " + ex + "\n");
-      Services.startup.quit();
     }
   },
 };
