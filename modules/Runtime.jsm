@@ -14,8 +14,7 @@ this.Runtime = {
   start(appFile) {
     registerChromePrefix(appFile.parent.path);
 
-    const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].
-                            createInstance(Ci.nsIPrincipal);
+    const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].createInstance(Ci.nsIPrincipal);
 
     const sandbox = new Cu.Sandbox(systemPrincipal, {
       wantComponents: true,
@@ -44,7 +43,7 @@ function registerChromePrefix(path) {
   tempFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0o600);
 
   let fileStream = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
-  fileStream.init(tempFile, 0x02 | 0x08 | 0x20, 0o664, 0); // write, create, truncate
+  fileStream.init(tempFile, 0x02 | 0x08 | 0x20, 0o600, 0); // write, create, truncate
   fileStream.write(manifestText, manifestText.length);
   fileStream.close();
 
