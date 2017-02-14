@@ -43,7 +43,7 @@ function registerChromePrefix(path) {
   tempFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0o600);
 
   let fileStream = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
-  fileStream.init(tempFile, 0x02 | 0x08 | 0x20, 0o600, 0); // write, create, truncate
+  fileStream.init(tempFile, -1, -1, 0);
   fileStream.write(manifestText, manifestText.length);
   fileStream.close();
 
