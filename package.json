@@ -4,6 +4,7 @@
   "description": "a Mozilla runtime",
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "MPL-2.0",
+  "repository": "mozilla/mzrt",
   "bin": "./mzrt.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
