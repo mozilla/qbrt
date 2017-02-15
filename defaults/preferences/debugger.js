@@ -1,8 +1,15 @@
-//@line 5 "/Users/myk/Projects/gecko/devtools/client/preferences/debugger.js"
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-//@line 9 "/Users/myk/Projects/gecko/devtools/client/preferences/debugger.js"
+// This comes from Gecko's devtools/client/preferences/debugger.js, which is
+// preprocessed to determine the value of devtools.debugger.new-debugger-frontend
+// (false on beta/release builds of Firefox, true otherwise).
+//
+// We set it to true unconditionally because the new debugger frontend
+// is presumably at least as mature as this project (and probably much more so).
+
 pref("devtools.debugger.new-debugger-frontend", true);
-//@line 11 "/Users/myk/Projects/gecko/devtools/client/preferences/debugger.js"
 
 // Enable the Debugger
 pref("devtools.debugger.enabled", true);
@@ -33,4 +40,3 @@ pref("devtools.debugger.start-panel-collapsed", false);
 pref("devtools.debugger.end-panel-collapsed", false);
 pref("devtools.debugger.tabs", "[]");
 pref("devtools.debugger.pending-selected-location", "{}");
-
