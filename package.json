@@ -2,9 +2,10 @@
   "name": "mzrt",
   "version": "0.1.0",
   "description": "a Mozilla runtime",
+  "author": "Myk Melez <myk@mykzilla.org>",
+  "license": "MPL-2.0",
+
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Myk Melez <myk@mykzilla.org>",
-  "license": "MPL-2.0"
+  }
 }
