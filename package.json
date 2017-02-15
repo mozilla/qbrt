@@ -4,9 +4,11 @@
   "description": "a Mozilla runtime",
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "MPL-2.0",
-
   "bin": "./mzrt.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "command-line-commands": "^2.0.0"
   }
 }
