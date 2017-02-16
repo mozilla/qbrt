@@ -11,3 +11,6 @@ manifest components/CommandLineHandler.manifest
 manifest devtools.manifest os=Linux
 manifest devtools.manifest os=WINNT
 manifest devtools-mac.manifest os=Darwin
+
+override chrome://devtools/content/framework/target-from-url.js modules/target-from-url.js
+override resource://devtools/content/framework/target-from-url.js modules/target-from-url.js
