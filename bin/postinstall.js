@@ -2,6 +2,7 @@
 
 const ChildProcess = require('child_process');
 const decompress = require('decompress');
+const extract = require('extract-zip');
 const fs = require('fs-extra');
 const https = require('https');
 const os = require('os');
@@ -44,6 +45,7 @@ const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mzrt-'));
 const mountPoint = path.join(tempDir, 'volume');
 
 // XXX Store Firefox in dist/ directory or the like.
+// XXX Rename Firefox to Runtime (Runtime.app on Mac).
 
 let filePath;
 let fileStream;
@@ -97,7 +99,7 @@ new Promise((resolve, reject) => {
     return (new Promise((resolve, reject) => {
       const childProcess = ChildProcess.spawn(
         'hdiutil',
-        [ 'attach', filePath, '-mountpoint', mountPoint ],
+        [ 'attach', filePath, '-mountpoint', mountPoint, '-nobrowse' ],
         {
           stdio: 'inherit',
         }
@@ -146,7 +148,21 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  // XXX Unzip browser/omni.ja.
+  // Unzip the browser/omni.ja archive so we can access its devtools.
+  // decompress fails silently on omni.ja, so we use extract-zip here instead.
+
+  let browserArchivePath = path.join(__dirname, '..');
+  if (process.platform === "darwin") {
+    browserArchivePath = path.join(browserArchivePath, 'Firefox.app', 'Contents', 'Resources');
+  }
+  else {
+    browserArchivePath = path.join(browserArchivePath, 'firefox');
+  }
+  browserArchivePath = path.join(browserArchivePath, 'browser');
+
+  const source = path.join(browserArchivePath, 'omni.ja');
+  const destination = browserArchivePath;
+  return pify(extract)(source, { dir: destination });
 })
 .catch((reason) => {
   console.error('Postinstall error: ', reason);
