@@ -33,7 +33,6 @@ const DOWNLOAD_OS = (() => { switch (process.platform) {
 }})();
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
-console.log(`DOWNLOAD_URL: ${DOWNLOAD_URL}`);
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
