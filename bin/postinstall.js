@@ -45,8 +45,8 @@ const mountPoint = path.join(tempDir, 'volume');
 
 // XXX Store Firefox in dist/ directory or the like.
 
-var filePath;
-var fileStream;
+let filePath;
+let fileStream;
 
 new Promise((resolve, reject) => {
   // We could use the follow-redirects module to follow redirects automagically,
