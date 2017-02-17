@@ -1,24 +1,51 @@
 #!/usr/bin/env node
 
 const ChildProcess = require('child_process');
+const decompress = require('decompress');
 const fs = require('fs-extra');
 const https = require('follow-redirects').https;
 const os = require('os');
 const path = require('path');
 const pify = require('pify');
 
-const DOWNLOAD_OS = { darwin: 'osx' }[process.platform];
+const DOWNLOAD_OS = (() => { switch (process.platform) {
+  case 'win32':
+    switch (process.arch) {
+      case 'ia32':
+        return 'win';
+      case 'x64':
+        return 'win64';
+      default:
+        throw new Error(`unsupported Windows architecture ${process.arch}`);
+    }
+  case 'linux':
+    switch (process.arch) {
+      case 'ia32':
+        return 'linux';
+      case 'x64':
+        return 'linux64';
+      default:
+        throw new Error(`unsupported Linux architecture ${process.arch}`);
+    }
+  case 'darwin':
+    return 'osx';
+}})();
+
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
+console.log(`DOWNLOAD_URL: ${DOWNLOAD_URL}`);
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
+  'application/x-tar': 'tar.bz2',
 };
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mzrt-'));
 const mountPoint = path.join(tempDir, 'volume');
 
-let filePath;
-let fileStream;
+// XXX Store Firefox in dist/ directory or the like.
+
+var filePath;
+var fileStream;
 
 new Promise((resolve, reject) => {
   https.get(DOWNLOAD_URL, resolve);
@@ -37,45 +64,60 @@ new Promise((resolve, reject) => {
 .then(() => {
   console.log(`file downloaded to ${filePath}`);
 
-  return new Promise((resolve, reject) => {
-    const childProcess = ChildProcess.spawn(
-      'hdiutil',
-      [ 'attach', filePath, '-mountpoint', mountPoint ],
-      {
-        stdio: 'inherit',
-      }
-    );
-    childProcess.on('exit', resolve);
-    childProcess.on('error', reject);
-  });
-})
-.then((exitCode) => {
-  console.log(`'hdiutil attach' exited with code ${exitCode}`);
+  if (process.platform === 'darwin') {
+    return (new Promise((resolve, reject) => {
+      const childProcess = ChildProcess.spawn(
+        'hdiutil',
+        [ 'attach', filePath, '-mountpoint', mountPoint ],
+        {
+          stdio: 'inherit',
+        }
+      );
+      childProcess.on('exit', resolve);
+      childProcess.on('error', reject);
+    }))
+    .then((exitCode) => {
+      console.log(`'hdiutil attach' exited with code ${exitCode}`);
 
-  if (exitCode) {
-    throw new Error(`'hdiutil attach' exited with code ${exitCode}`);
+      if (exitCode) {
+        throw new Error(`'hdiutil attach' exited with code ${exitCode}`);
+      }
+      const source = path.join(mountPoint, 'FirefoxNightly.app');
+      const destination = path.join(__dirname, '..', 'Firefox.app');
+      // XXX Handle the destination already existing.
+      return fs.copySync(source, destination);
+    })
+    .then(() => {
+      console.log('app package copied');
+
+      return new Promise((resolve, reject) => {
+        const childProcess = ChildProcess.spawn(
+          'hdiutil',
+          [ 'detach', mountPoint ],
+          {
+            stdio: 'inherit',
+          }
+        );
+        childProcess.on('exit', resolve);
+        childProcess.on('error', reject);
+      });
+    })
+    .then((exitCode) => {
+      console.log(`'hdiutil detach' exited with code ${exitCode}`);
+    });
   }
-  const source = path.join(mountPoint, 'FirefoxNightly.app');
-  const destination = path.join(__dirname, '..', 'Firefox.app');
-  return fs.copySync(source, destination);
+  else if (process.platform === 'linux') {
+    const source = filePath;
+    const destination = path.join(__dirname, '..');
+    // XXX Handle the destination already existing.
+    // XXX Show progress (or at least notify that decompressing is underway).
+    return decompress(source, destination).then((files) => {
+      console.log('expanded tar.bz2 archive');
+    });
+  }
 })
 .then(() => {
-  console.log('app package copied');
-
-  return new Promise((resolve, reject) => {
-    const childProcess = ChildProcess.spawn(
-      'hdiutil',
-      [ 'detach', mountPoint ],
-      {
-        stdio: 'inherit',
-      }
-    );
-    childProcess.on('exit', resolve);
-    childProcess.on('error', reject);
-  });
-})
-.then((exitCode) => {
-  console.log(`'hdiutil detach' exited with code ${exitCode}`);
+  // XXX Unzip browser/omni.ja.
 })
 .catch((reason) => {
   console.error('Postinstall error: ', reason);
@@ -89,5 +131,6 @@ new Promise((resolve, reject) => {
   // in both cases.
   fs.removeSync(filePath);
   fs.rmdirSync(tempDir);
+  // XXX Remove partial copy of Firefox.
   process.exit();
 });
