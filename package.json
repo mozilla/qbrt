@@ -5,6 +5,7 @@
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "MPL-2.0",
   "repository": "mozilla/mzrt",
+  "engines": { "node": ">=5.10.0" },
   "bin": "./mzrt.js",
   "scripts": {
     "postinstall": "./bin/postinstall.js",
