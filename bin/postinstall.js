@@ -3,7 +3,7 @@
 const ChildProcess = require('child_process');
 const decompress = require('decompress');
 const fs = require('fs-extra');
-const https = require('follow-redirects').https;
+const https = require('https');
 const os = require('os');
 const path = require('path');
 const pify = require('pify');
@@ -36,6 +36,7 @@ console.log(`DOWNLOAD_URL: ${DOWNLOAD_URL}`);
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
+  'application/zip': "zip",
   'application/x-tar': 'tar.bz2',
 };
 
@@ -48,7 +49,26 @@ var filePath;
 var fileStream;
 
 new Promise((resolve, reject) => {
-  https.get(DOWNLOAD_URL, resolve);
+  // We could use the follow-redirects module to follow redirects automagically,
+  // except that we need to modify the final URL on Windows to get the ZIP file
+  // instead of the installer, since it's hard to expand the installer
+  // (without a JS implementation of 7zip, which is hard to find for Node).
+  // So instead we use this simple recursive function to follow redirects.
+  function download(url) {
+    https.get(url, function(response) {
+      if (response.headers.location) {
+        let location = response.headers.location;
+        if (process.platform === 'win32') {
+          location = location.replace(/\.installer\.exe$/, '.zip');
+        }
+        download(location);
+      }
+      else {
+        resolve(response);
+      }
+    }).on('error', reject);
+  }
+  download(DOWNLOAD_URL);
 })
 .then((response) => {
   const extension = FILE_EXTENSIONS[response.headers['content-type']];
@@ -64,7 +84,16 @@ new Promise((resolve, reject) => {
 .then(() => {
   console.log(`file downloaded to ${filePath}`);
 
-  if (process.platform === 'darwin') {
+  if (process.platform === 'win32') {
+    const source = filePath;
+    const destination = path.join(__dirname, '..');
+    // XXX Handle the destination already existing.
+    // XXX Show progress (or at least notify that decompressing is underway).
+    return decompress(source, destination).then((files) => {
+      console.log('expanded zip archive');
+    });
+  }
+  else if (process.platform === 'darwin') {
     return (new Promise((resolve, reject) => {
       const childProcess = ChildProcess.spawn(
         'hdiutil',

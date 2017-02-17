@@ -5,7 +5,9 @@
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "MPL-2.0",
   "repository": "mozilla/mzrt",
-  "engines": { "node": ">=5.10.0" },
+  "engines": {
+    "node": ">=5.10.0"
+  },
   "bin": "./mzrt.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
@@ -15,7 +17,6 @@
     "command-line-args": "^4.0.1",
     "command-line-commands": "^2.0.0",
     "decompress": "^4.0.0",
-    "follow-redirects": "^1.2.1",
     "fs-extra": "^2.0.0",
     "pify": "^2.3.0"
   }
