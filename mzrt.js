@@ -30,10 +30,9 @@ let executableArgs = [
 
 options.jsdebugger && executableArgs.push('--jsdebugger');
 
+process.env.MOZ_NO_REMOTE = 1;
+
 const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
-  env: {
-    MOZ_NO_REMOTE: 1,
-  },
   stdio: 'inherit',
 });
 childProcess.on('close', code => process.exit(code));
