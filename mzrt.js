@@ -16,7 +16,7 @@ const options = commandLineArgs(optionDefinitions, { argv: argv });
 const DIST_DIR = path.join(__dirname, 'dist');
 
 const EXECUTABLE_DIR = process.platform === 'darwin' ?
-                       path.join(DIST_DIR, 'Firefox.app', 'Contents', 'MacOS') :
+                       path.join(DIST_DIR, 'GeckoRuntime.app', 'Contents', 'MacOS') :
                        path.join(DIST_DIR, 'firefox');
 
 const EXECUTABLE = process.platform === 'win32' ?

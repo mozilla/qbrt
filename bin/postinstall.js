@@ -115,7 +115,7 @@ new Promise((resolve, reject) => {
       // XXX Give the destination a different name so searching for "Firefox"
       // in Spotlight doesn't return this copy.
       //
-      const destination = path.join(DIST_DIR, 'Firefox.app');
+      const destination = path.join(DIST_DIR, 'GeckoRuntime.app');
       fs.removeSync(destination);
       return fs.copySync(source, destination);
     })
@@ -151,7 +151,7 @@ new Promise((resolve, reject) => {
 
   let browserArchivePath = DIST_DIR;
   if (process.platform === "darwin") {
-    browserArchivePath = path.join(browserArchivePath, 'Firefox.app', 'Contents', 'Resources');
+    browserArchivePath = path.join(browserArchivePath, 'GeckoRuntime.app', 'Contents', 'Resources');
   }
   else {
     browserArchivePath = path.join(browserArchivePath, 'firefox');
