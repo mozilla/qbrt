@@ -45,9 +45,6 @@ const FILE_EXTENSIONS = {
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mzrt-'));
 const mountPoint = path.join(tempDir, 'volume');
 
-// XXX Store Firefox in dist/ directory or the like.
-// XXX Rename Firefox to Runtime (Runtime.app on Mac).
-
 let filePath;
 let fileStream;
 
@@ -88,8 +85,7 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = filePath;
     const destination = DIST_DIR;
-    // XXX Handle the destination already existing.
-    // XXX Show progress (or at least notify that decompressing is underway).
+    fs.removeSync(path.join(destination, 'firefox'));
     return decompress(source, destination).then((files) => {
       console.log('expanded zip archive');
     });
@@ -113,8 +109,15 @@ new Promise((resolve, reject) => {
         throw new Error(`'hdiutil attach' exited with code ${exitCode}`);
       }
       const source = path.join(mountPoint, 'FirefoxNightly.app');
+      // Unlike Windows and Linux, where the destination is the parent dir,
+      // on Mac the destination is the installation dir itself, because we've
+      // already expanded the archive (DMG) and are copying the dir inside it.
+      //
+      // XXX Give the destination a different name so searching for "Firefox"
+      // in Spotlight doesn't return this copy.
+      //
       const destination = path.join(DIST_DIR, 'Firefox.app');
-      // XXX Handle the destination already existing.
+      fs.removeSync(destination);
       return fs.copySync(source, destination);
     })
     .then(() => {
@@ -139,8 +142,7 @@ new Promise((resolve, reject) => {
   else if (process.platform === 'linux') {
     const source = filePath;
     const destination = DIST_DIR;
-    // XXX Handle the destination already existing.
-    // XXX Show progress (or at least notify that decompressing is underway).
+    fs.removeSync(path.join(destination, 'firefox'));
     return decompress(source, destination).then((files) => {
       console.log('expanded tar.bz2 archive');
     });
