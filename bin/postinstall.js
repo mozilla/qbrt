@@ -80,21 +80,17 @@ new Promise((resolve, reject) => {
   });
 })
 .then(() => {
-  console.log(`file downloaded to ${filePath}`);
-
   if (process.platform === 'win32') {
     const source = filePath;
     const destination = DIST_DIR;
     fs.removeSync(path.join(destination, 'firefox'));
-    return decompress(source, destination).then((files) => {
-      console.log('expanded zip archive');
-    });
+    return decompress(source, destination);
   }
   else if (process.platform === 'darwin') {
     return (new Promise((resolve, reject) => {
       const childProcess = ChildProcess.spawn(
         'hdiutil',
-        [ 'attach', filePath, '-mountpoint', mountPoint, '-nobrowse' ],
+        [ 'attach', filePath, '-mountpoint', mountPoint, '-nobrowse', '-quiet' ],
         {
           stdio: 'inherit',
         }
@@ -103,11 +99,10 @@ new Promise((resolve, reject) => {
       childProcess.on('error', reject);
     }))
     .then((exitCode) => {
-      console.log(`'hdiutil attach' exited with code ${exitCode}`);
-
       if (exitCode) {
         throw new Error(`'hdiutil attach' exited with code ${exitCode}`);
       }
+
       const source = path.join(mountPoint, 'FirefoxNightly.app');
       // Unlike Windows and Linux, where the destination is the parent dir,
       // on Mac the destination is the installation dir itself, because we've
@@ -121,12 +116,10 @@ new Promise((resolve, reject) => {
       return fs.copySync(source, destination);
     })
     .then(() => {
-      console.log('app package copied');
-
       return new Promise((resolve, reject) => {
         const childProcess = ChildProcess.spawn(
           'hdiutil',
-          [ 'detach', mountPoint ],
+          [ 'detach', mountPoint, '-quiet' ],
           {
             stdio: 'inherit',
           }
@@ -136,16 +129,16 @@ new Promise((resolve, reject) => {
       });
     })
     .then((exitCode) => {
-      console.log(`'hdiutil detach' exited with code ${exitCode}`);
+      if (exitCode) {
+        throw new Error(`'hdiutil detach' exited with code ${exitCode}`);
+      }
     });
   }
   else if (process.platform === 'linux') {
     const source = filePath;
     const destination = DIST_DIR;
     fs.removeSync(path.join(destination, 'firefox'));
-    return decompress(source, destination).then((files) => {
-      console.log('expanded tar.bz2 archive');
-    });
+    return decompress(source, destination);
   }
 })
 .then(() => {
