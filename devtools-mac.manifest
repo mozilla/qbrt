@@ -1,9 +1,9 @@
-interfaces Firefox.app/Contents/Resources/browser/components/interfaces.xpt
-locale devtools en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/client/
-locale devtools-shared en-US Firefox.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/shared/
-content devtools Firefox.app/Contents/Resources/browser/chrome/devtools/content/
-resource devtools Firefox.app/Contents/Resources/browser/chrome/devtools/modules/devtools/
-skin devtools classic/1.0 Firefox.app/Contents/Resources/browser/chrome/devtools/skin/
-component {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32} Firefox.app/Contents/Resources/browser/components/devtools-startup.js
+interfaces dist/GeckoRuntime.app/Contents/Resources/browser/components/interfaces.xpt
+locale devtools en-US dist/GeckoRuntime.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/client/
+locale devtools-shared en-US dist/GeckoRuntime.app/Contents/Resources/browser/chrome/en-US/locale/en-US/devtools/shared/
+content devtools dist/GeckoRuntime.app/Contents/Resources/browser/chrome/devtools/content/
+resource devtools dist/GeckoRuntime.app/Contents/Resources/browser/chrome/devtools/modules/devtools/
+skin devtools classic/1.0 dist/GeckoRuntime.app/Contents/Resources/browser/chrome/devtools/skin/
+component {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32} dist/GeckoRuntime.app/Contents/Resources/browser/components/devtools-startup.js
 contract @mozilla.org/devtools/startup-clh;1 {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32}
 category command-line-handler m-devtools @mozilla.org/devtools/startup-clh;1
