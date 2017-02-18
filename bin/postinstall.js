@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 const ChildProcess = require('child_process');
+const chalk = require('chalk');
+const cli = require('cli');
 const decompress = require('decompress');
 const extract = require('extract-zip');
 const fs = require('fs-extra');
@@ -34,7 +36,6 @@ const DOWNLOAD_OS = (() => { switch (process.platform) {
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
-fs.ensureDirSync(DIST_DIR);
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
@@ -42,6 +43,9 @@ const FILE_EXTENSIONS = {
   'application/x-tar': 'tar.bz2',
 };
 
+cli.spinner('  Installing Gecko runtime…');
+
+fs.ensureDirSync(DIST_DIR);
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mzrt-'));
 const mountPoint = path.join(tempDir, 'volume');
 
@@ -158,8 +162,12 @@ new Promise((resolve, reject) => {
   const destination = browserArchivePath;
   return pify(extract)(source, { dir: destination });
 })
+.then(() => {
+  cli.spinner(chalk.green.bold('✓ ') + 'Installing Gecko runtime… done!\n', true);
+})
 .catch((reason) => {
-  console.error('Postinstall error: ', reason);
+  cli.spinner(chalk.red.bold('✗ ') + 'Installing Gecko runtime… failed!\n', true);
+  console.error('Gecko runtime install error: ', reason);
   if (fileStream) {
     fileStream.end();
   }
