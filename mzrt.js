@@ -13,10 +13,15 @@ const optionDefinitions = [
 ];
 const options = commandLineArgs(optionDefinitions, { argv: argv });
 
-const executable = process.platform === 'darwin' ? 'Firefox.app/Contents/MacOS/firefox' : 'firefox';
-if (process.platform === 'win32') {
-  executable += '.exe';
-}
+const DIST_DIR = path.join(__dirname, 'dist');
+
+const EXECUTABLE_DIR = process.platform === 'darwin' ?
+                       path.join(DIST_DIR, 'Firefox.app', 'Contents', 'MacOS') :
+                       path.join(DIST_DIR, 'firefox');
+
+const EXECUTABLE = process.platform === 'win32' ?
+                   path.join(EXECUTABLE_DIR, 'firefox.exe') :
+                   path.join(EXECUTABLE_DIR, 'firefox');
 
 let executableArgs = [
   '--app', path.join(__dirname, 'application.ini'),
@@ -25,7 +30,7 @@ let executableArgs = [
 
 options.jsdebugger && executableArgs.push('--jsdebugger');
 
-const childProcess = ChildProcess.spawn(executable, executableArgs, {
+const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
   env: {
     MOZ_NO_REMOTE: 1,
   },

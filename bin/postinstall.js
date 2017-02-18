@@ -33,6 +33,8 @@ const DOWNLOAD_OS = (() => { switch (process.platform) {
 }})();
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+fs.ensureDirSync(DIST_DIR);
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
@@ -50,15 +52,13 @@ let filePath;
 let fileStream;
 
 new Promise((resolve, reject) => {
-  // We could use the follow-redirects module to follow redirects automagically,
-  // except that we need to modify the final URL on Windows to get the ZIP file
-  // instead of the installer, since it's hard to expand the installer
-  // (without a JS implementation of 7zip, which is hard to find for Node).
-  // So instead we use this simple recursive function to follow redirects.
   function download(url) {
     https.get(url, function(response) {
       if (response.headers.location) {
         let location = response.headers.location;
+        // Rewrite Windows installer links to point to the ZIP equivalent,
+        // since it's hard to expand the installer programmatically (requires
+        // a Node implementation of 7zip).
         if (process.platform === 'win32') {
           location = location.replace(/\.installer\.exe$/, '.zip');
         }
@@ -87,7 +87,7 @@ new Promise((resolve, reject) => {
 
   if (process.platform === 'win32') {
     const source = filePath;
-    const destination = path.join(__dirname, '..');
+    const destination = DIST_DIR;
     // XXX Handle the destination already existing.
     // XXX Show progress (or at least notify that decompressing is underway).
     return decompress(source, destination).then((files) => {
@@ -113,7 +113,7 @@ new Promise((resolve, reject) => {
         throw new Error(`'hdiutil attach' exited with code ${exitCode}`);
       }
       const source = path.join(mountPoint, 'FirefoxNightly.app');
-      const destination = path.join(__dirname, '..', 'Firefox.app');
+      const destination = path.join(DIST_DIR, 'Firefox.app');
       // XXX Handle the destination already existing.
       return fs.copySync(source, destination);
     })
@@ -138,7 +138,7 @@ new Promise((resolve, reject) => {
   }
   else if (process.platform === 'linux') {
     const source = filePath;
-    const destination = path.join(__dirname, '..');
+    const destination = DIST_DIR;
     // XXX Handle the destination already existing.
     // XXX Show progress (or at least notify that decompressing is underway).
     return decompress(source, destination).then((files) => {
@@ -150,7 +150,7 @@ new Promise((resolve, reject) => {
   // Unzip the browser/omni.ja archive so we can access its devtools.
   // decompress fails silently on omni.ja, so we use extract-zip here instead.
 
-  let browserArchivePath = path.join(__dirname, '..');
+  let browserArchivePath = DIST_DIR;
   if (process.platform === "darwin") {
     browserArchivePath = path.join(browserArchivePath, 'Firefox.app', 'Contents', 'Resources');
   }
