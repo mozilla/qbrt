@@ -12,7 +12,7 @@ this.EXPORTED_SYMBOLS = ["Runtime"];
 
 this.Runtime = {
   start(appFile) {
-    registerChromePrefix(appFile.parent.path);
+    registerChromePrefix(appFile.parent);
 
     const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].createInstance(Ci.nsIPrincipal);
 
@@ -35,8 +35,9 @@ function readFile(file) {
   return data;
 }
 
-function registerChromePrefix(path) {
-  let manifestText = `content app ${path}/`;
+function registerChromePrefix(appDir) {
+  let appDirURI = Services.io.newFileURI(appDir);
+  let manifestText = `content app ${appDirURI.spec}/`;
 
   const tempFile = Services.dirsvc.get("TmpD", Ci.nsIFile);
   tempFile.append("temp.manifest");

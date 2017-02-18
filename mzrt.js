@@ -28,7 +28,9 @@ let executableArgs = [
   options.path,
 ];
 
-options.jsdebugger && executableArgs.push('--jsdebugger');
+// The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
+// but Windows needs the former, so we use it for all platforms.
+options.jsdebugger && executableArgs.push('-jsdebugger');
 
 process.env.MOZ_NO_REMOTE = 1;
 
