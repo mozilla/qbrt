@@ -8,6 +8,7 @@ const extract = require('extract-zip');
 const fs = require('fs-extra');
 const https = require('https');
 const os = require('os');
+const package = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 
@@ -46,7 +47,7 @@ const FILE_EXTENSIONS = {
 cli.spinner('  Installing Gecko runtime…');
 
 fs.ensureDirSync(DIST_DIR);
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mzrt-'));
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${package.name}-`));
 const mountPoint = path.join(tempDir, 'volume');
 
 let filePath;

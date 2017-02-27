@@ -13,7 +13,7 @@ const optionDefinitions = [
 ];
 const options = commandLineArgs(optionDefinitions, { argv: argv });
 
-const DIST_DIR = path.join(__dirname, 'dist');
+const DIST_DIR = path.join(__dirname, '..', 'dist');
 
 const EXECUTABLE_DIR = process.platform === 'darwin' ?
                        path.join(DIST_DIR, 'GeckoRuntime.app', 'Contents', 'MacOS') :
@@ -24,7 +24,7 @@ const EXECUTABLE = process.platform === 'win32' ?
                    path.join(EXECUTABLE_DIR, 'firefox');
 
 let executableArgs = [
-  '--app', path.join(__dirname, 'application.ini'),
+  '--app', path.join(__dirname, '..', 'application.ini'),
   options.path,
 ];
 

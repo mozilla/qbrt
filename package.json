@@ -1,14 +1,14 @@
 {
-  "name": "mzrt",
+  "name": "qbrt",
   "version": "0.1.0",
   "description": "a Mozilla runtime",
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "MPL-2.0",
-  "repository": "mozilla/mzrt",
+  "repository": "mozilla/qbrt",
   "engines": {
     "node": ">=5.10.0"
   },
-  "bin": "./mzrt.js",
+  "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
     "test": "echo \"Error: no test specified\" && exit 1"

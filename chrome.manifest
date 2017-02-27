@@ -1,8 +1,8 @@
-# The manifest file for mzrt's command-line handler, which starts the runtime.
+# The manifest file for the command-line handler, which starts the runtime.
 manifest components/CommandLineHandler.manifest
 
 # Devtools live in the browser app inside the Firefox bundle, so they aren't
-# available by default when we run mzrt via firefox --app (bug 1244163).
+# available by default when we run this xulapp via firefox --app (bug 1244163).
 # We have to specify manifest instructions to make their resources available.
 #
 # And the resource location varies by OS, as they live in firefox/browser/
