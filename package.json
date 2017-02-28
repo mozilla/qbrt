@@ -11,7 +11,7 @@
   "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node ./test/test-hello-world.js"
   },
   "dependencies": {
     "chalk": "^1.1.3",
