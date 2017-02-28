@@ -44,7 +44,7 @@ const FILE_EXTENSIONS = {
   'application/x-tar': 'tar.bz2',
 };
 
-cli.spinner('  Installing Gecko runtime…');
+cli.spinner('  Installing runtime…');
 
 fs.ensureDirSync(DIST_DIR);
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${package.name}-`));
@@ -75,7 +75,7 @@ new Promise((resolve, reject) => {
 })
 .then((response) => {
   const extension = FILE_EXTENSIONS[response.headers['content-type']];
-  filePath = path.join(tempDir, `firefox.${extension}`);
+  filePath = path.join(tempDir, `runtime.${extension}`);
   fileStream = fs.createWriteStream(filePath);
   response.pipe(fileStream);
 
@@ -88,7 +88,7 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = filePath;
     const destination = DIST_DIR;
-    fs.removeSync(path.join(destination, 'firefox'));
+    fs.removeSync(path.join(destination, 'runtime'));
     return decompress(source, destination);
   }
   else if (process.platform === 'darwin') {
@@ -116,7 +116,7 @@ new Promise((resolve, reject) => {
       // XXX Give the destination a different name so searching for "Firefox"
       // in Spotlight doesn't return this copy.
       //
-      const destination = path.join(DIST_DIR, 'GeckoRuntime.app');
+      const destination = path.join(DIST_DIR, 'Runtime.app');
       fs.removeSync(destination);
       return fs.copySync(source, destination);
     })
@@ -142,7 +142,7 @@ new Promise((resolve, reject) => {
   else if (process.platform === 'linux') {
     const source = filePath;
     const destination = DIST_DIR;
-    fs.removeSync(path.join(destination, 'firefox'));
+    fs.removeSync(path.join(destination, 'runtime'));
     return decompress(source, destination);
   }
 })
@@ -152,10 +152,10 @@ new Promise((resolve, reject) => {
 
   let browserArchivePath = DIST_DIR;
   if (process.platform === "darwin") {
-    browserArchivePath = path.join(browserArchivePath, 'GeckoRuntime.app', 'Contents', 'Resources');
+    browserArchivePath = path.join(browserArchivePath, 'Runtime.app', 'Contents', 'Resources');
   }
   else {
-    browserArchivePath = path.join(browserArchivePath, 'firefox');
+    browserArchivePath = path.join(browserArchivePath, 'runtime');
   }
   browserArchivePath = path.join(browserArchivePath, 'browser');
 
@@ -164,11 +164,11 @@ new Promise((resolve, reject) => {
   return pify(extract)(source, { dir: destination });
 })
 .then(() => {
-  cli.spinner(chalk.green.bold('✓ ') + 'Installing Gecko runtime… done!\n', true);
+  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!\n', true);
 })
 .catch((reason) => {
-  cli.spinner(chalk.red.bold('✗ ') + 'Installing Gecko runtime… failed!\n', true);
-  console.error('Gecko runtime install error: ', reason);
+  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!\n', true);
+  console.error('Runtime install error: ', reason);
   if (fileStream) {
     fileStream.end();
   }

@@ -1,4 +1,4 @@
-# Ignore the dist directory where we install a Gecko runtime.
+# Ignore the dist directory where we install the runtime.
 dist/
 
 # The rest of this file is copied from this Node.gitignore template:
