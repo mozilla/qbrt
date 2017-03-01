@@ -28,7 +28,6 @@ const EXECUTABLE = process.platform === 'win32' ?
 
 const applicationIni = path.join(__dirname, '..', 'application.ini');
 const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${package.name}-profile-`));
-console.log(`profileDir: ${profileDir}`);
 
 let executableArgs = [
   '--app', applicationIni,
