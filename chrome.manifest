@@ -1,8 +1,8 @@
-# The manifest file for mzrt's command-line handler, which starts the runtime.
+# The manifest file for the command-line handler, which starts the runtime.
 manifest components/CommandLineHandler.manifest
 
 # Devtools live in the browser app inside the Firefox bundle, so they aren't
-# available by default when we run mzrt via firefox --app (bug 1244163).
+# available by default when we run this xulapp via firefox --app (bug 1244163).
 # We have to specify manifest instructions to make their resources available.
 #
 # And the resource location varies by OS, as they live in firefox/browser/
@@ -14,3 +14,7 @@ manifest devtools-mac.manifest os=Darwin
 
 override chrome://devtools/content/framework/target-from-url.js modules/target-from-url.js
 override resource://devtools/content/framework/target-from-url.js modules/target-from-url.js
+
+# Disable addons.
+component {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0} components/DisabledAddonManager.js
+contract @mozilla.org/addons/integration;1 {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0}

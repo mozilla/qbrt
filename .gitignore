@@ -1,6 +1,5 @@
-# Ignore the copy of Firefox that the tool downloads and installs locally.
-Firefox.app
-firefox
+# Ignore the dist directory where we install the runtime.
+dist/
 
 # The rest of this file is copied from this Node.gitignore template:
 #   https://github.com/github/gitignore/blob/978d926/Node.gitignore
