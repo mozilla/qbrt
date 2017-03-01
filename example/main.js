@@ -15,6 +15,12 @@ const WINDOW_FEATURES = [
   "height=480",
 ].join(",");
 
+// On startup, activate ourselves, since starting up from Node doesn't do this.
+// TODO: do this by default for all apps started via Node.
+if (Services.appinfo.OS === 'Darwin') {
+  Cc["@mozilla.org/widget/macdocksupport;1"].getService(Ci.nsIMacDockSupport).activateApplication(true);
+}
+
 console.log("Hello, World!");
 
 Services.ww.openWindow(null, WINDOW_URL, "_blank", WINDOW_FEATURES, null);
