@@ -3,6 +3,7 @@
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
+const { Runtime } = Cu.import("resource:///modules/Runtime.jsm", {});
 const { Services } = Cu.import("resource://gre/modules/Services.jsm", {});
 
 const WINDOW_URL = "chrome://app/content/index.html";
@@ -17,4 +18,5 @@ const WINDOW_FEATURES = [
 
 console.log("Hello, World!");
 
-Services.ww.openWindow(null, WINDOW_URL, "_blank", WINDOW_FEATURES, null);
+const window = Services.ww.openWindow(null, WINDOW_URL, "_blank", WINDOW_FEATURES, null);
+Runtime.openDevTools(window);
