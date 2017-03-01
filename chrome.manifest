@@ -12,9 +12,6 @@ manifest devtools.manifest os=Linux
 manifest devtools.manifest os=WINNT
 manifest devtools-mac.manifest os=Darwin
 
-override chrome://devtools/content/framework/target-from-url.js modules/target-from-url.js
-override resource://devtools/content/framework/target-from-url.js modules/target-from-url.js
-
 # Disable addons.
 component {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0} components/DisabledAddonManager.js
 contract @mozilla.org/addons/integration;1 {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0}

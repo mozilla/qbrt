@@ -63,11 +63,27 @@ this.Runtime = {
     // asking the toolbox's opener how to handle things.  In this case, just
     // close the toolbox.
     let onMessage = ({ data }) => {
-      data = JSON.parse(data);
-      if (data.name !== "toolbox-close") {
-        return;
+      // Sometimes `data` is a String (f.e. on toolbox-title or toolbox-close),
+      // while other times it's an Object (f.e. on set-host-title), which feels
+      // like an upstream bug.  Anyway, for now we parse it conditionally.
+      if (typeof data === 'string') {
+        data = JSON.parse(data);
       }
-      toolsWindow.close();
+
+      switch (data.name) {
+        case "toolbox-close":
+          toolsWindow.close();
+          break;
+        // We get both set-host-title and toolbox-title, and they provide
+        // the same title, although their semantics vary.  Weird, but we simply
+        // ignore one and use the other.
+        case "set-host-title":
+          toolsWindow.document.title = data.title;
+          break;
+        // case "toolbox-title":
+        //   toolsWindow.document.title = data.data.value;
+        //   break;
+      }
     };
 
     toolsWindow.addEventListener("message", onMessage);
