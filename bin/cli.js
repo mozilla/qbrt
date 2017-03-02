@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-"use strict";
+'use strict';
 
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
@@ -14,7 +14,7 @@ const validCommands = [ null, 'run' ];
 const { command, argv } = commandLineCommands(validCommands);
 const optionDefinitions = [
   { name: 'jsdebugger', type: Boolean },
-  { name: 'path', type: String, defaultOption: true },
+  { name: 'path', type: String, defaultOption: true }
 ];
 const options = commandLineArgs(optionDefinitions, { argv: argv });
 
@@ -34,7 +34,7 @@ const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-pr
 let executableArgs = [
   '--app', applicationIni,
   '--profile', profileDir,
-  options.path,
+  options.path
 ];
 
 // The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
@@ -44,7 +44,7 @@ options.jsdebugger && executableArgs.push('-jsdebugger');
 process.env.MOZ_NO_REMOTE = 1;
 
 const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
-  stdio: 'inherit',
+  stdio: 'inherit'
 });
 childProcess.on('close', code => {
   fs.removeSync(profileDir);

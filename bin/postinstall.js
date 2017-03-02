@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-"use strict";
+'use strict';
 
 const ChildProcess = require('child_process');
 const chalk = require('chalk');
@@ -14,36 +14,38 @@ const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 
-const DOWNLOAD_OS = (() => { switch (process.platform) {
-  case 'win32':
-    switch (process.arch) {
-      case 'ia32':
-        return 'win';
-      case 'x64':
-        return 'win64';
-      default:
-        throw new Error(`unsupported Windows architecture ${process.arch}`);
-    }
-  case 'linux':
-    switch (process.arch) {
-      case 'ia32':
-        return 'linux';
-      case 'x64':
-        return 'linux64';
-      default:
-        throw new Error(`unsupported Linux architecture ${process.arch}`);
-    }
-  case 'darwin':
-    return 'osx';
-}})();
+const DOWNLOAD_OS = (() => {
+  switch (process.platform) {
+    case 'win32':
+      switch (process.arch) {
+        case 'ia32':
+          return 'win';
+        case 'x64':
+          return 'win64';
+        default:
+          throw new Error(`unsupported Windows architecture ${process.arch}`);
+      }
+    case 'linux':
+      switch (process.arch) {
+        case 'ia32':
+          return 'linux';
+        case 'x64':
+          return 'linux64';
+        default:
+          throw new Error(`unsupported Linux architecture ${process.arch}`);
+      }
+    case 'darwin':
+      return 'osx';
+  }
+})();
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
-  'application/zip': "zip",
-  'application/x-tar': 'tar.bz2',
+  'application/zip': 'zip',
+  'application/x-tar': 'tar.bz2'
 };
 
 cli.spinner('  Installing runtime…');
@@ -56,8 +58,8 @@ let filePath;
 let fileStream;
 
 new Promise((resolve, reject) => {
-  function download(url) {
-    https.get(url, function(response) {
+  function download (url) {
+    https.get(url, function (response) {
       if (response.headers.location) {
         let location = response.headers.location;
         // Rewrite Windows installer links to point to the ZIP equivalent,
@@ -67,8 +69,7 @@ new Promise((resolve, reject) => {
           location = location.replace(/\.installer\.exe$/, '.zip');
         }
         download(location);
-      }
-      else {
+      } else {
         resolve(response);
       }
     }).on('error', reject);
@@ -95,14 +96,13 @@ new Promise((resolve, reject) => {
     .then(() => {
       fs.renameSync(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
     });
-  }
-  else if (process.platform === 'darwin') {
+  } else if (process.platform === 'darwin') {
     return (new Promise((resolve, reject) => {
       const childProcess = ChildProcess.spawn(
         'hdiutil',
         [ 'attach', filePath, '-mountpoint', mountPoint, '-nobrowse', '-quiet' ],
         {
-          stdio: 'inherit',
+          stdio: 'inherit'
         }
       );
       childProcess.on('exit', resolve);
@@ -131,7 +131,7 @@ new Promise((resolve, reject) => {
           'hdiutil',
           [ 'detach', mountPoint, '-quiet' ],
           {
-            stdio: 'inherit',
+            stdio: 'inherit'
           }
         );
         childProcess.on('exit', resolve);
@@ -143,8 +143,7 @@ new Promise((resolve, reject) => {
         throw new Error(`'hdiutil detach' exited with code ${exitCode}`);
       }
     });
-  }
-  else if (process.platform === 'linux') {
+  } else if (process.platform === 'linux') {
     const source = filePath;
     const destination = DIST_DIR;
     fs.removeSync(path.join(destination, 'runtime'));
@@ -159,10 +158,9 @@ new Promise((resolve, reject) => {
   // decompress fails silently on omni.ja, so we use extract-zip here instead.
 
   let browserArchivePath = DIST_DIR;
-  if (process.platform === "darwin") {
+  if (process.platform === 'darwin') {
     browserArchivePath = path.join(browserArchivePath, 'Runtime.app', 'Contents', 'Resources');
-  }
-  else {
+  } else {
     browserArchivePath = path.join(browserArchivePath, 'runtime');
   }
   browserArchivePath = path.join(browserArchivePath, 'browser');
