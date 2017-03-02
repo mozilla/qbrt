@@ -81,9 +81,9 @@ CommandLineHandler.prototype = {
     } catch (ex) {}
 
     if (appURI) {
-      // If the app argument is a URI, run it in the default app.
+      // If the app argument is a URI, run it in the shell.
       appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
-      appPath.append('default-app');
+      appPath.append('shell');
       appPath.append('main.js');
     }
     else {
