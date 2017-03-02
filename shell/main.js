@@ -14,5 +14,11 @@ const WINDOW_FEATURES = [
   "scrollbars",
 ].join(",");
 
+// On startup, activate ourselves, since starting up from Node doesn't do this.
+// TODO: do this by default for all apps started via Node.
+if (Services.appinfo.OS === 'Darwin') {
+  Cc["@mozilla.org/widget/macdocksupport;1"].getService(Ci.nsIMacDockSupport).activateApplication(true);
+}
+
 const window = Services.ww.openWindow(null, Runtime.arguments[0], "_blank", WINDOW_FEATURES, null);
 Runtime.openDevTools(window);
