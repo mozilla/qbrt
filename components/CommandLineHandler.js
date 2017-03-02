@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+"use strict";
+
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 
 Cu.import("resource:///modules/Runtime.jsm");
@@ -43,9 +45,9 @@ CommandLineHandler.prototype = {
           let features = "chrome,dialog=no,all";
           // For the "all" feature to be applied correctly, you must pass an
           // args array with at least one element.
-          var args = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
-          args.AppendElement(null);
-          Services.ww.openWindow(null, resolvedURI.spec, "_blank", features, args);
+          let windowArgs = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+          windowArgs.AppendElement(null);
+          Services.ww.openWindow(null, resolvedURI.spec, "_blank", features, windowArgs);
           cmdLine.preventDefault = true;
           return;
         } else {
@@ -59,10 +61,10 @@ CommandLineHandler.prototype = {
     }
 
     // Slurp arguments into an array we can pass to the app.
-    let arguments = [];
+    let commandLineArgs = [];
     for (let i = 0; true; i++) {
       try {
-        arguments.push(cmdLine.getArgument(i));
+        commandLineArgs.push(cmdLine.getArgument(i));
       } catch (ex) {
         if (ex.result == Cr.NS_ERROR_INVALID_ARG) {
           break;
@@ -77,7 +79,7 @@ CommandLineHandler.prototype = {
     let appPath;
 
     try {
-      appURI = Services.io.newURI(arguments[0], null, null);
+      appURI = Services.io.newURI(commandLineArgs[0], null, null);
     } catch (ex) {}
 
     if (appURI) {
@@ -87,7 +89,7 @@ CommandLineHandler.prototype = {
       appPath.append('main.js');
     }
     else {
-      appPath = cmdLine.resolveFile(arguments[0]);
+      appPath = cmdLine.resolveFile(commandLineArgs[0]);
       if (!appPath.exists()) {
         dump(`error: nonexistent app path: ${appPath.path}\n`);
         return;
@@ -95,7 +97,7 @@ CommandLineHandler.prototype = {
     }
 
     try {
-      Runtime.start(appPath, arguments);
+      Runtime.start(appPath, commandLineArgs);
     } catch(ex) {
       dump(`error starting app: ${ex}\n`);
       Services.startup.quit(Ci.nsIAppStartup.eForceQuit);

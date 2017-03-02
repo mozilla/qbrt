@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+"use strict";
+
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
 const { NetUtil } = Cu.import("resource://gre/modules/NetUtil.jsm", {});
@@ -10,12 +12,14 @@ const ChromeRegistry = Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci
 
 this.EXPORTED_SYMBOLS = ["Runtime"];
 
-const private = {};
+const global = this;
+
+let commandLineArgs;
 
 this.Runtime = {
-  get arguments() { return private.arguments.slice() },
+  get commandLineArgs() { return global.commandLineArgs.slice() },
 
-  start(appFile, arguments) {
+  start(appFile, commandLineArgs) {
     registerChromePrefix(appFile.parent);
 
     const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].createInstance(Ci.nsIPrincipal);
@@ -24,7 +28,7 @@ this.Runtime = {
       wantComponents: true,
     });
 
-    private.arguments = arguments;
+    global.commandLineArgs = commandLineArgs;
 
     Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
   },
