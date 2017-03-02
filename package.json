@@ -13,6 +13,12 @@
     "postinstall": "node ./bin/postinstall.js",
     "test": "semistandard && node ./test/test-hello-world.js"
   },
+  "semistandard": {
+    "ignore": [
+      "defaults/preferences/debugger.js",
+      "defaults/preferences/devtools.js"
+    ]
+  },
   "dependencies": {
     "chalk": "^1.1.3",
     "cli": "^1.0.1",
