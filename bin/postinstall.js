@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+"use strict";
+
 const ChildProcess = require('child_process');
 const chalk = require('chalk');
 const cli = require('cli');
@@ -8,7 +10,7 @@ const extract = require('extract-zip');
 const fs = require('fs-extra');
 const https = require('https');
 const os = require('os');
-const package = require('../package.json');
+const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 
@@ -47,7 +49,7 @@ const FILE_EXTENSIONS = {
 cli.spinner('  Installing runtime…');
 
 fs.ensureDirSync(DIST_DIR);
-const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${package.name}-`));
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
 const mountPoint = path.join(tempDir, 'volume');
 
 let filePath;

@@ -4,10 +4,7 @@
 
 // App-specific preferences, in alphabetical order.
 
-// Disabled, because for some reason it dumps:
-// JavaScript error: resource://gre/components/nsPrompter.js, line 350: NS_ERROR_NOT_AVAILABLE: Cannot call openModalWindow on a hidden window
-// pref("browser.dom.window.dump.enabled", true);
-
+pref("browser.dom.window.dump.enabled", true);
 pref("devtools.chrome.enabled", true);
 pref("devtools.debugger.prompt-connection", false);
 pref("devtools.debugger.remote-enabled", true);

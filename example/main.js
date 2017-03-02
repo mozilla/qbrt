@@ -1,6 +1,8 @@
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 
+"use strict";
+
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
 const { Runtime } = Cu.import("resource:///modules/Runtime.jsm", {});
