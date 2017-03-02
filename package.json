@@ -11,7 +11,7 @@
   "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
-    "test": "semistandard"
+    "test": "semistandard && node ./test/test-hello-world.js"
   },
   "dependencies": {
     "chalk": "^1.1.3",

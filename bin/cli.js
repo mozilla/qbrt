@@ -2,6 +2,9 @@
 
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
+const fs = require('fs-extra');
+const os = require('os');
+const package = require('../package.json');
 const path = require('path');
 const ChildProcess = require('child_process');
 
@@ -23,8 +26,12 @@ const EXECUTABLE = process.platform === 'win32' ?
                    path.join(EXECUTABLE_DIR, 'firefox.exe') :
                    path.join(EXECUTABLE_DIR, 'firefox');
 
+const applicationIni = path.join(__dirname, '..', 'application.ini');
+const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${package.name}-profile-`));
+
 let executableArgs = [
-  '--app', path.join(__dirname, '..', 'application.ini'),
+  '--app', applicationIni,
+  '--profile', profileDir,
   options.path,
 ];
 
@@ -37,4 +44,7 @@ process.env.MOZ_NO_REMOTE = 1;
 const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
   stdio: 'inherit',
 });
-childProcess.on('close', code => process.exit(code));
+childProcess.on('close', code => {
+  fs.removeSync(profileDir);
+  process.exit(code);
+});

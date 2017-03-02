@@ -1,3 +1,11 @@
 language: node_js
 node_js:
   - "node"
+  - "6"
+os:
+  - linux
+  - osx
+
+# https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
+before_script:
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start; sleep 3; fi
