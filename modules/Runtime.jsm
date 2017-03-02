@@ -10,8 +10,12 @@ const ChromeRegistry = Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci
 
 this.EXPORTED_SYMBOLS = ["Runtime"];
 
+const private = {};
+
 this.Runtime = {
-  start(appFile) {
+  get arguments() { return private.arguments.slice() },
+
+  start(appFile, arguments) {
     registerChromePrefix(appFile.parent);
 
     const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].createInstance(Ci.nsIPrincipal);
@@ -19,6 +23,8 @@ this.Runtime = {
     const sandbox = new Cu.Sandbox(systemPrincipal, {
       wantComponents: true,
     });
+
+    private.arguments = arguments;
 
     Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
   },

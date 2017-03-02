@@ -58,21 +58,44 @@ CommandLineHandler.prototype = {
       }
     }
 
+    // Slurp arguments into an array we can pass to the app.
+    let arguments = [];
+    for (let i = 0; true; i++) {
+      try {
+        arguments.push(cmdLine.getArgument(i));
+      } catch (ex) {
+        if (ex.result == Cr.NS_ERROR_INVALID_ARG) {
+          break;
+        }
+        else {
+          throw ex;
+        }
+      }
+    }
+
+    let appURI;
     let appPath;
+
     try {
-      appPath = cmdLine.resolveFile(cmdLine.getArgument(0));
-    } catch (e) {
-      if (e.result == Cr.NS_ERROR_INVALID_ARG) {
-        dump(`error: invalid app path: ${appPath}\n`);
-        Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
+      appURI = Services.io.newURI(arguments[0], null, null);
+    } catch (ex) {}
+
+    if (appURI) {
+      // If the app argument is a URI, run it in the shell.
+      appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
+      appPath.append('shell');
+      appPath.append('main.js');
+    }
+    else {
+      appPath = cmdLine.resolveFile(arguments[0]);
+      if (!appPath.exists()) {
+        dump(`error: nonexistent app path: ${appPath.path}\n`);
         return;
-      } else {
-        throw e;
       }
     }
 
     try {
-      Runtime.start(appPath);
+      Runtime.start(appPath, arguments);
     } catch(ex) {
       dump(`error starting app: ${ex}\n`);
       Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
