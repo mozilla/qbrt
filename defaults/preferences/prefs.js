@@ -14,3 +14,4 @@ pref("devtools.debugger.remote-enabled", true);
 pref("devtools.selfxss.count", 5);
 pref("dom.mozBrowserFramesEnabled", true);
 pref("javascript.options.showInConsole", true);
+pref("toolkit.telemetry.enabled", false);
