@@ -89,7 +89,10 @@ new Promise((resolve, reject) => {
     const source = filePath;
     const destination = DIST_DIR;
     fs.removeSync(path.join(destination, 'runtime'));
-    return decompress(source, destination);
+    return decompress(source, destination)
+    .then(() => {
+      fs.renameSync(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
+    });
   }
   else if (process.platform === 'darwin') {
     return (new Promise((resolve, reject) => {
@@ -143,7 +146,10 @@ new Promise((resolve, reject) => {
     const source = filePath;
     const destination = DIST_DIR;
     fs.removeSync(path.join(destination, 'runtime'));
-    return decompress(source, destination);
+    return decompress(source, destination)
+    .then(() => {
+      fs.renameSync(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
+    });
   }
 })
 .then(() => {

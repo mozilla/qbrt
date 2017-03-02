@@ -94,8 +94,6 @@ CommandLineHandler.prototype = {
       }
     }
 
-    dump(`loading app: ${appPath.path}\n`);
-
     try {
       Runtime.start(appPath, arguments);
     } catch(ex) {
