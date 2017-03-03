@@ -1,4 +1,10 @@
+# The location of the jsinspector interface depends on how the runtime
+# is packaged.  In a downloaded nightly build, it's in interfaces.xpt,
+# while in a local build it's in jsinspector.xpt.  We cover both bases,
+# since nothing bad happens if one or the other file isn't found.
 interfaces dist/firefox/browser/components/interfaces.xpt
+interfaces dist/firefox/browser/components/jsinspector.xpt
+
 locale devtools en-US dist/firefox/browser/chrome/en-US/locale/en-US/devtools/client/
 locale devtools-shared en-US dist/firefox/browser/chrome/en-US/locale/en-US/devtools/shared/
 content devtools dist/firefox/browser/chrome/devtools/content/
