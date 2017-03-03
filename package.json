@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "a Mozilla runtime",
   "author": "Myk Melez <myk@mykzilla.org>",
-  "license": "MPL-2.0",
+  "license": "Apache-2.0",
   "repository": "mozilla/qbrt",
   "engines": {
     "node": ">=5.10.0"
