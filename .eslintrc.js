@@ -1,27 +1,29 @@
-"use strict";
+'use strict';
 
 module.exports = {
-  "env": {
-    "es6": true,
-    "node": true
+  env: {
+    es6: true,
+    node: true,
   },
-  "extends": "eslint:recommended",
+  extends: 'eslint:recommended',
   // All of these globals rules apply only to certain files, so we might
   // move them into file-specific settings, although it's a pain.
-  "globals": {
-    "Components": false,
+  globals: {
+    Components: false,
     dump: false,
     pref: false,
   },
-  "parserOptions": {
-    "ecmaVersion": 8,
+  parserOptions: {
+    ecmaVersion: 8,
   },
-  "rules": {
-    "brace-style": ["error", "stroustrup", { allowSingleLine: true }],
-    "comma-dangle": ["error", "always-multiline"],
-    "no-console": "off",
-    "no-constant-condition": ["error", { checkLoops: false }],
-    "no-empty": ["error", { allowEmptyCatch: true }],
+  rules: {
+    'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
+    'comma-dangle': ['error', 'always-multiline'],
+    indent: [ 'error', 2 ],
+    'linebreak-style': ['error', 'unix'],
+    'no-console': 'off',
+    'no-constant-condition': ['error', { checkLoops: false }],
+    'no-empty': ['error', { allowEmptyCatch: true }],
 
     // Cc, Ci, Cr, and Cu are effectively default globals that we define
     // in many scripts as shorthands for properties of the Components global.
@@ -33,24 +35,11 @@ module.exports = {
     // but it's still useful to declare their parameters, to make the interface
     // specification more obvious, so we ignore their nonuse via args: none.
     //
-    "no-unused-vars": ["error", { varsIgnorePattern: "Cc|Ci|Cr|Cu", args: "none" }],
+    'no-unused-vars': ['error', { varsIgnorePattern: 'Cc|Ci|Cr|Cu', args: 'none' }],
 
-    "indent": [
-      "error",
-      2,
-    ],
-    "linebreak-style": [
-      "error",
-      "unix",
-    ],
-    "quotes": [
-      "error",
-      "single",
-    ],
-    "semi": [
-      "error",
-      "always",
-    ],
-    "space-before-function-paren": ["error", "never"],
-  }
+    quotes: ['error', 'single'],
+    'quote-props': ['error', 'as-needed'],
+    semi: ['error', 'always'],
+    'space-before-function-paren': ['error', 'never'],
+  },
 };

@@ -8,7 +8,7 @@ const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 
 const { Runtime } = Cu.import('resource:///modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
-const { XPCOMUtils } = Cu.import('resource:///gre/modules/XPCOMUtils.jsm', {});
+const { XPCOMUtils } = Cu.import('resource://gre/modules/XPCOMUtils.jsm', {});
 
 function CommandLineHandler() {}
 
