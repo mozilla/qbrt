@@ -1,6 +1,16 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* Copyright 2017 Mozilla
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 
@@ -58,21 +68,44 @@ CommandLineHandler.prototype = {
       }
     }
 
+    // Slurp arguments into an array we can pass to the app.
+    let arguments = [];
+    for (let i = 0; true; i++) {
+      try {
+        arguments.push(cmdLine.getArgument(i));
+      } catch (ex) {
+        if (ex.result == Cr.NS_ERROR_INVALID_ARG) {
+          break;
+        }
+        else {
+          throw ex;
+        }
+      }
+    }
+
+    let appURI;
     let appPath;
+
     try {
-      appPath = cmdLine.resolveFile(cmdLine.getArgument(0));
-    } catch (e) {
-      if (e.result == Cr.NS_ERROR_INVALID_ARG) {
-        dump(`error: invalid app path: ${appPath}\n`);
-        Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
+      appURI = Services.io.newURI(arguments[0], null, null);
+    } catch (ex) {}
+
+    if (appURI) {
+      // If the app argument is a URI, run it in the shell.
+      appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
+      appPath.append('shell');
+      appPath.append('main.js');
+    }
+    else {
+      appPath = cmdLine.resolveFile(arguments[0]);
+      if (!appPath.exists()) {
+        dump(`error: nonexistent app path: ${appPath.path}\n`);
         return;
-      } else {
-        throw e;
       }
     }
 
     try {
-      Runtime.start(appPath);
+      Runtime.start(appPath, arguments);
     } catch(ex) {
       dump(`error starting app: ${ex}\n`);
       Services.startup.quit(Ci.nsIAppStartup.eForceQuit);

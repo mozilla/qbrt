@@ -1,6 +1,16 @@
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* Copyright 2017 Mozilla
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License. */
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
@@ -10,8 +20,12 @@ const ChromeRegistry = Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci
 
 this.EXPORTED_SYMBOLS = ["Runtime"];
 
+const private = {};
+
 this.Runtime = {
-  start(appFile) {
+  get arguments() { return private.arguments.slice() },
+
+  start(appFile, arguments) {
     registerChromePrefix(appFile.parent);
 
     const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].createInstance(Ci.nsIPrincipal);
@@ -19,6 +33,8 @@ this.Runtime = {
     const sandbox = new Cu.Sandbox(systemPrincipal, {
       wantComponents: true,
     });
+
+    private.arguments = arguments;
 
     Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
   },
