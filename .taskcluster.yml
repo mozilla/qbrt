@@ -30,6 +30,7 @@ tasks:
           cd repo &&
           git checkout {{event.head.sha}} &&
           npm install . &&
+          node ./bin/postinstall.js &&
           (Xvfb :2 -screen 0 1024x768x24 &) &&
           export DISPLAY=:2 &&
           npm test
