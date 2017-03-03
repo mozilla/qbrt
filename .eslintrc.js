@@ -17,6 +17,7 @@ module.exports = {
     "ecmaVersion": 8,
   },
   "rules": {
+    "brace-style": ["error", "stroustrup", { allowSingleLine: true }],
     "comma-dangle": ["error", "always-multiline"],
     "no-console": "off",
     "no-constant-condition": ["error", { checkLoops: false }],

@@ -69,7 +69,8 @@ new Promise((resolve, reject) => {
           location = location.replace(/\.installer\.exe$/, '.zip');
         }
         download(location);
-      } else {
+      }
+      else {
         resolve(response);
       }
     }).on('error', reject);
@@ -96,7 +97,8 @@ new Promise((resolve, reject) => {
     .then(() => {
       fs.renameSync(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
     });
-  } else if (process.platform === 'darwin') {
+  }
+  else if (process.platform === 'darwin') {
     return (new Promise((resolve, reject) => {
       const childProcess = ChildProcess.spawn(
         'hdiutil',
@@ -143,7 +145,8 @@ new Promise((resolve, reject) => {
         throw new Error(`'hdiutil detach' exited with code ${exitCode}`);
       }
     });
-  } else if (process.platform === 'linux') {
+  }
+  else if (process.platform === 'linux') {
     const source = filePath;
     const destination = DIST_DIR;
     fs.removeSync(path.join(destination, 'runtime'));
@@ -160,7 +163,8 @@ new Promise((resolve, reject) => {
   let browserArchivePath = DIST_DIR;
   if (process.platform === 'darwin') {
     browserArchivePath = path.join(browserArchivePath, 'Runtime.app', 'Contents', 'Resources');
-  } else {
+  }
+  else {
     browserArchivePath = path.join(browserArchivePath, 'runtime');
   }
   browserArchivePath = path.join(browserArchivePath, 'browser');

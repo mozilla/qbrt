@@ -50,11 +50,13 @@ CommandLineHandler.prototype = {
           Services.ww.openWindow(null, resolvedURI.spec, '_blank', features, windowArgs);
           cmdLine.preventDefault = true;
           return;
-        } else {
+        }
+        else {
           dump('*** Preventing load of web URI as chrome\n');
           dump('    If you\'re trying to load a webpage, do not pass --chrome.\n');
         }
-      } catch (e) {
+      }
+      catch (e) {
         dump(e + '\n');
       }
     }
@@ -64,10 +66,12 @@ CommandLineHandler.prototype = {
     for (let i = 0; true; i++) {
       try {
         commandLineArgs.push(cmdLine.getArgument(i));
-      } catch (ex) {
+      }
+      catch (ex) {
         if (ex.result == Cr.NS_ERROR_INVALID_ARG) {
           break;
-        } else {
+        }
+        else {
           throw ex;
         }
       }
@@ -78,14 +82,16 @@ CommandLineHandler.prototype = {
 
     try {
       appURI = Services.io.newURI(commandLineArgs[0], null, null);
-    } catch (ex) {}
+    }
+    catch (ex) {}
 
     if (appURI) {
       // If the app argument is a URI, run it in the shell.
       appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
       appPath.append('shell');
       appPath.append('main.js');
-    } else {
+    }
+    else {
       appPath = cmdLine.resolveFile(commandLineArgs[0]);
       if (!appPath.exists()) {
         dump(`error: nonexistent app path: ${appPath.path}\n`);
@@ -95,7 +101,8 @@ CommandLineHandler.prototype = {
 
     try {
       Runtime.start(appPath, commandLineArgs);
-    } catch (ex) {
+    }
+    catch (ex) {
       dump(`error starting app: ${ex}\n`);
       Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
     }
