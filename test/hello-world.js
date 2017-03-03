@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 
-"use strict";
+'use strict';
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
-const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
-const { Services } = Cu.import("resource://gre/modules/Services.jsm", {});
+const { console } = Cu.import('resource://gre/modules/Console.jsm', {});
+const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 
-console.log("Hello, World!");
+console.log('Hello, World!');
 
 Services.startup.quit(Ci.nsIAppStartup.eForceQuit);

@@ -28,35 +28,37 @@ const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 
-const DOWNLOAD_OS = (() => { switch (process.platform) {
+const DOWNLOAD_OS = (() => {
+  switch (process.platform) {
   case 'win32':
     switch (process.arch) {
-      case 'ia32':
-        return 'win';
-      case 'x64':
-        return 'win64';
-      default:
-        throw new Error(`unsupported Windows architecture ${process.arch}`);
+    case 'ia32':
+      return 'win';
+    case 'x64':
+      return 'win64';
+    default:
+      throw new Error(`unsupported Windows architecture ${process.arch}`);
     }
   case 'linux':
     switch (process.arch) {
-      case 'ia32':
-        return 'linux';
-      case 'x64':
-        return 'linux64';
-      default:
-        throw new Error(`unsupported Linux architecture ${process.arch}`);
+    case 'ia32':
+      return 'linux';
+    case 'x64':
+      return 'linux64';
+    default:
+      throw new Error(`unsupported Linux architecture ${process.arch}`);
     }
   case 'darwin':
     return 'osx';
-}})();
+  }
+})();
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
-  'application/zip': "zip",
+  'application/zip': 'zip',
   'application/x-tar': 'tar.bz2',
 };
 
@@ -173,7 +175,7 @@ new Promise((resolve, reject) => {
   // decompress fails silently on omni.ja, so we use extract-zip here instead.
 
   let browserArchivePath = DIST_DIR;
-  if (process.platform === "darwin") {
+  if (process.platform === 'darwin') {
     browserArchivePath = path.join(browserArchivePath, 'Runtime.app', 'Contents', 'Resources');
   }
   else {

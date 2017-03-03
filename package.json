@@ -11,7 +11,7 @@
   "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
-    "test": "node ./test/test-hello-world.js"
+    "test": "eslint . && node ./test/test-hello-world.js"
   },
   "dependencies": {
     "chalk": "^1.1.3",
@@ -22,5 +22,8 @@
     "extract-zip": "^1.6.0",
     "fs-extra": "^2.0.0",
     "pify": "^2.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.16.1"
   }
 }

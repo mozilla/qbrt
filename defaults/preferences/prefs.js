@@ -14,17 +14,17 @@
 
 // App-specific preferences, in alphabetical order.
 
-pref("browser.dom.window.dump.enabled", true);
-pref("devtools.chrome.enabled", true);
-pref("devtools.debugger.prompt-connection", false);
-pref("devtools.debugger.remote-enabled", true);
-pref("devtools.selfxss.count", 5);
-pref("dom.mozBrowserFramesEnabled", true);
-pref("javascript.options.showInConsole", true);
+pref('browser.dom.window.dump.enabled', true);
+pref('devtools.chrome.enabled', true);
+pref('devtools.debugger.prompt-connection', false);
+pref('devtools.debugger.remote-enabled', true);
+pref('devtools.selfxss.count', 5);
+pref('dom.mozBrowserFramesEnabled', true);
+pref('javascript.options.showInConsole', true);
 
 // Ideally, this would disable telemetry, but it doesn't actually work
 // (at least it doesn't disable code that spews errors into the console),
 // so we also override the @mozilla.org/base/telemetry-startup;1 XPCOM contract
 // with a custom component DisabledTelemetryStartup that ignores
 // the app-startup and profile-after-change messages.
-pref("toolkit.telemetry.enabled", false);
+pref('toolkit.telemetry.enabled', false);
