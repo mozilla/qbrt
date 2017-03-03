@@ -24,8 +24,13 @@ tasks:
         - '--login'
         - '-c'
         - >-
-          git clone {{event.head.repo.url}} repo && cd repo && git checkout
-          {{event.head.sha}} && npm install . && npm test
+          git clone {{event.head.repo.url}} repo &&
+          cd repo &&
+          git checkout {{event.head.sha}} &&
+          npm install . &&
+          (Xvfb :2 -screen 0 1024x768x24 &) &&
+          export DISPLAY=:2 &&
+          npm test
     metadata:
       name: test-qbrt
       description: run the qbrt automated test suite
