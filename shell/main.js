@@ -12,7 +12,7 @@ const WINDOW_FEATURES = [
   'width=640',
   'height=480',
   'resizable',
-  'scrollbars'
+  'scrollbars',
 ].join(',');
 
 // On startup, activate ourselves, since starting up from Node doesn't do this.

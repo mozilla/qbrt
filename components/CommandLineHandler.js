@@ -99,7 +99,7 @@ CommandLineHandler.prototype = {
       dump(`error starting app: ${ex}\n`);
       Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
     }
-  }
+  },
 };
 
 this.NSGetFactory = XPCOMUtils.generateNSGetFactory([CommandLineHandler]);

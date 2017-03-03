@@ -45,7 +45,7 @@ const DIST_DIR = path.join(__dirname, '..', 'dist');
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
   'application/zip': 'zip',
-  'application/x-tar': 'tar.bz2'
+  'application/x-tar': 'tar.bz2',
 };
 
 cli.spinner('  Installing runtime…');
@@ -102,7 +102,7 @@ new Promise((resolve, reject) => {
         'hdiutil',
         [ 'attach', filePath, '-mountpoint', mountPoint, '-nobrowse', '-quiet' ],
         {
-          stdio: 'inherit'
+          stdio: 'inherit',
         }
       );
       childProcess.on('exit', resolve);
@@ -131,7 +131,7 @@ new Promise((resolve, reject) => {
           'hdiutil',
           [ 'detach', mountPoint, '-quiet' ],
           {
-            stdio: 'inherit'
+            stdio: 'inherit',
           }
         );
         childProcess.on('exit', resolve);

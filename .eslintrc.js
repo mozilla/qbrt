@@ -17,6 +17,7 @@ module.exports = {
     "ecmaVersion": 8,
   },
   "rules": {
+    "comma-dangle": ["error", "always-multiline"],
     "no-console": "off",
     "no-constant-condition": ["error", { checkLoops: false }],
     "no-empty": ["error", { allowEmptyCatch: true }],

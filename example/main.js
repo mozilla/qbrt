@@ -15,7 +15,7 @@ const WINDOW_FEATURES = [
   'dialog=no',
   'all',
   'width=640',
-  'height=480'
+  'height=480',
 ].join(',');
 
 // On startup, activate ourselves, since starting up from Node doesn't do this.

@@ -15,7 +15,7 @@ DisabledAddonManager.prototype = {
   _xpcom_factory: XPCOMUtils.generateSingletonFactory(DisabledAddonManager),
 
   observe (subject, topic, data) {},
-  notify (timer) {}
+  notify (timer) {},
 };
 
 this.NSGetFactory = XPCOMUtils.generateNSGetFactory([DisabledAddonManager]);

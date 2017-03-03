@@ -22,7 +22,7 @@ case 'run':
 function run() {
   const optionDefinitions = [
     { name: 'jsdebugger', type: Boolean },
-    { name: 'path', type: String, defaultOption: true }
+    { name: 'path', type: String, defaultOption: true },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
 
@@ -42,7 +42,7 @@ function run() {
   let executableArgs = [
     '--app', applicationIni,
     '--profile', profileDir,
-    options.path
+    options.path,
   ];
 
   // The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
@@ -52,7 +52,7 @@ function run() {
   process.env.MOZ_NO_REMOTE = 1;
 
   const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
-    stdio: 'inherit'
+    stdio: 'inherit',
   });
   childProcess.on('close', code => {
     fs.removeSync(profileDir);
