@@ -6,9 +6,9 @@
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 
-Cu.import('resource:///modules/Runtime.jsm');
-Cu.import('resource://gre/modules/Services.jsm');
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
+const { Runtime } = Cu.import('resource:///modules/Runtime.jsm', {});
+const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
+const { XPCOMUtils } = Cu.import('resource:///gre/modules/XPCOMUtils.jsm', {});
 
 function CommandLineHandler () {}
 
@@ -52,7 +52,7 @@ CommandLineHandler.prototype = {
           return;
         } else {
           dump('*** Preventing load of web URI as chrome\n');
-          dump("    If you're trying to load a webpage, do not pass --chrome.\n");
+          dump('    If you\'re trying to load a webpage, do not pass --chrome.\n');
         }
       } catch (e) {
         dump(e + '\n');

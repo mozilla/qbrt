@@ -6,25 +6,48 @@ module.exports = {
     "node": true
   },
   "extends": "eslint:recommended",
+  // All of these globals rules apply only to certain files, so we might
+  // move them into file-specific settings, although it's a pain.
+  "globals": {
+    "Components": false,
+    dump: false,
+    pref: false,
+  },
   "parserOptions": {
     "ecmaVersion": 8,
   },
   "rules": {
+    "no-console": "off",
+    "no-constant-condition": ["error", { checkLoops: false }],
+    "no-empty": ["error", { allowEmptyCatch: true }],
+
+    // Cc, Ci, Cr, and Cu are effectively default globals that we define
+    // in many scripts as shorthands for properties of the Components global.
+    // Their definition is boilerplate that we don't want to customize
+    // for each script, so we ignore their nonuse via a varsIgnorePattern.
+    //
+    // Some of our function definitions are XPCOM interface implementations,
+    // and they don't always use all the arguments defined by the interface,
+    // but it's still useful to declare their parameters, to make the interface
+    // specification more obvious, so we ignore their nonuse via args: none.
+    //
+    "no-unused-vars": ["error", { varsIgnorePattern: "Cc|Ci|Cr|Cu", args: "none" }],
+
     "indent": [
       "error",
-      2
+      2,
     ],
     "linebreak-style": [
       "error",
-      "unix"
+      "unix",
     ],
     "quotes": [
       "error",
-      "single"
+      "single",
     ],
     "semi": [
       "error",
-      "always"
+      "always",
     ]
   }
 };
