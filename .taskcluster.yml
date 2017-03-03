@@ -24,6 +24,7 @@ tasks:
         - '--login'
         - '-c'
         - >-
+          sudo apt-get install xvfb &&
           git clone {{event.head.repo.url}} repo &&
           cd repo &&
           git checkout {{event.head.sha}} &&
