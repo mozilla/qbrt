@@ -1,0 +1,33 @@
+version: 0
+metadata:
+  name: qbrt
+  description: a Node CLI to a minimal Mozilla desktop app runtime
+  owner: '{{ event.head.user.email }}'
+  source: '{{ event.head.repo.url }}'
+tasks:
+  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
+    workerType: '{{ taskcluster.docker.workerType }}'
+    extra:
+      github:
+        events:
+          - pull_request.opened
+          - pull_request.closed
+          - pull_request.synchronize
+          - pull_request.reopened
+          - push
+          - release
+    payload:
+      maxRunTime: 3600
+      image: 'node:6'
+      command:
+        - /bin/bash
+        - '--login'
+        - '-c'
+        - >-
+          git clone {{event.head.repo.url}} repo && cd repo && git checkout
+          {{event.head.sha}} && npm install . && npm test
+    metadata:
+      name: test-qbrt
+      description: run the qbrt automated test suite
+      owner: '{{ event.head.user.email }}'
+      source: '{{ event.head.repo.url }}'
