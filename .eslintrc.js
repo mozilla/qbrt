@@ -5,7 +5,9 @@ module.exports = {
     es6: true,
     node: true,
   },
+
   extends: 'eslint:recommended',
+
   // All of these globals rules apply only to certain files, so we might
   // move them into file-specific settings, although it's a pain.
   globals: {
@@ -13,9 +15,11 @@ module.exports = {
     dump: false,
     pref: false,
   },
+
   parserOptions: {
     ecmaVersion: 8,
   },
+
   rules: {
     'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
     'comma-dangle': ['error', 'always-multiline'],
