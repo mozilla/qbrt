@@ -49,6 +49,7 @@ module.exports = {
     "semi": [
       "error",
       "always",
-    ]
+    ],
+    "space-before-function-paren": ["error", "never"],
   }
 };

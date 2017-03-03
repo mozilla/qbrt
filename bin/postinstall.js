@@ -58,8 +58,8 @@ let filePath;
 let fileStream;
 
 new Promise((resolve, reject) => {
-  function download (url) {
-    https.get(url, function (response) {
+  function download(url) {
+    https.get(url, function(response) {
       if (response.headers.location) {
         let location = response.headers.location;
         // Rewrite Windows installer links to point to the ZIP equivalent,

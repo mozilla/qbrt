@@ -10,7 +10,7 @@ const { Runtime } = Cu.import('resource:///modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 const { XPCOMUtils } = Cu.import('resource:///gre/modules/XPCOMUtils.jsm', {});
 
-function CommandLineHandler () {}
+function CommandLineHandler() {}
 
 CommandLineHandler.prototype = {
   classID: Components.ID('{236b79c3-ab58-446f-abba-4caba4deb337}'),
@@ -23,7 +23,7 @@ CommandLineHandler.prototype = {
 
   helpInfo: '',
 
-  handle: function (cmdLine) {
+  handle: function(cmdLine) {
     // Firefox, in nsBrowserContentHandler, has a more robust handler
     // for the --chrome flag, which tries to correct typos in the URL
     // being loaded.  But we only need to handle loading devtools in a separate

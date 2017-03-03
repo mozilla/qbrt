@@ -7,15 +7,15 @@
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { XPCOMUtils } = Cu.import('resource://gre/modules/XPCOMUtils.jsm', {});
 
-function DisabledAddonManager () {}
+function DisabledAddonManager() {}
 
 DisabledAddonManager.prototype = {
   classID: Components.ID('{ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0}'),
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver, Ci.nsITimerCallback]),
   _xpcom_factory: XPCOMUtils.generateSingletonFactory(DisabledAddonManager),
 
-  observe (subject, topic, data) {},
-  notify (timer) {},
+  observe(subject, topic, data) {},
+  notify(timer) {},
 };
 
 this.NSGetFactory = XPCOMUtils.generateNSGetFactory([DisabledAddonManager]);
