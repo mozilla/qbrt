@@ -24,7 +24,8 @@ tasks:
         - '--login'
         - '-c'
         - >-
-          apt-get install xvfb &&
+          apt-get update -y &&
+          apt-get install -y xvfb &&
           git clone {{event.head.repo.url}} repo &&
           cd repo &&
           git checkout {{event.head.sha}} &&
