@@ -19,7 +19,7 @@ module.exports = {
   rules: {
     'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
     'comma-dangle': ['error', 'always-multiline'],
-    indent: [ 'error', 2 ],
+    'indent': [ 'error', 2 ],
     'linebreak-style': ['error', 'unix'],
     'no-console': 'off',
     'no-constant-condition': ['error', { checkLoops: false }],
@@ -37,9 +37,9 @@ module.exports = {
     //
     'no-unused-vars': ['error', { varsIgnorePattern: 'Cc|Ci|Cr|Cu', args: 'none' }],
 
-    quotes: ['error', 'single'],
-    'quote-props': ['error', 'as-needed'],
-    semi: ['error', 'always'],
+    'quotes': ['error', 'single'],
+    'quote-props': ['error', 'consistent-as-needed'],
+    'semi': ['error', 'always'],
     'space-before-function-paren': ['error', 'never'],
   },
 };
