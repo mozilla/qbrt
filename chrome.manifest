@@ -15,3 +15,7 @@ manifest devtools-mac.manifest os=Darwin
 # Disable addons.
 component {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0} components/DisabledAddonManager.js
 contract @mozilla.org/addons/integration;1 {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0}
+
+# Disable telemetry.
+component {b0836913-f33f-4935-96af-235891cd5815} components/DisabledTelemetryStartup.js
+contract @mozilla.org/base/telemetry-startup;1 {b0836913-f33f-4935-96af-235891cd5815}
