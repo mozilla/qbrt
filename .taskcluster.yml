@@ -25,7 +25,7 @@ tasks:
         - '-c'
         - >-
           apt-get update -y &&
-          apt-get install -y libgtk-3-0 xvfb &&
+          apt-get install -y libgtk-3-0 libdbus-glib-1-2 xvfb &&
           git clone {{event.head.repo.url}} repo &&
           cd repo &&
           git checkout {{event.head.sha}} &&
