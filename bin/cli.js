@@ -27,6 +27,7 @@ const { command, argv } = commandLineCommands(validCommands);
 const optionDefinitions = [
   { name: 'jsdebugger', type: Boolean },
   { name: 'path', type: String, defaultOption: true },
+  { name: 'pause-on-startup', type: Boolean },
 ];
 const options = commandLineArgs(optionDefinitions, { argv: argv });
 
@@ -52,7 +53,7 @@ let executableArgs = [
 // The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
 // but Windows needs the former, so we use it for all platforms.
 options.jsdebugger && executableArgs.push('-jsdebugger');
-options.jsdebugger && executableArgs.push('--pause-on-startup');
+options['pause-on-startup'] && executableArgs.push('--pause-on-startup');
 
 process.env.MOZ_NO_REMOTE = 1;
 
