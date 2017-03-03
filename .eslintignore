@@ -1,3 +1,7 @@
+# Don't ignore .eslintrc.js itself (normally it's ignored by default),
+# since we want its style to be consistent with the rules it specifies.
+!.eslintrc.js
+
 # Ignore node_modules directories anywhere in the directory hierarchy.
 **/node_modules/**/*.*
 
