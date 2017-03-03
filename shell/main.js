@@ -12,6 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 
+"use strict";
+
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
 const { Runtime } = Cu.import("resource:///modules/Runtime.jsm", {});
@@ -30,5 +32,5 @@ if (Services.appinfo.OS === 'Darwin') {
   Cc["@mozilla.org/widget/macdocksupport;1"].getService(Ci.nsIMacDockSupport).activateApplication(true);
 }
 
-const window = Services.ww.openWindow(null, Runtime.arguments[0], "_blank", WINDOW_FEATURES, null);
+const window = Services.ww.openWindow(null, Runtime.commandLineArgs[0], "_blank", WINDOW_FEATURES, null);
 Runtime.openDevTools(window);

@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 
+'use strict';
+
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
 const fs = require('fs-extra');
 const os = require('os');
-const package = require('../package.json');
+const packageJson = require('../package.json');
 const path = require('path');
 const ChildProcess = require('child_process');
 
@@ -41,7 +43,7 @@ const EXECUTABLE = process.platform === 'win32' ?
                    path.join(EXECUTABLE_DIR, 'firefox');
 
 const applicationIni = path.join(__dirname, '..', 'application.ini');
-const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${package.name}-profile-`));
+const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
 
 let executableArgs = [
   '--app', applicationIni,
