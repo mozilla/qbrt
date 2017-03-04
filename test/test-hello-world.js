@@ -26,7 +26,7 @@ const childProcess = spawn('node', [ path.join('bin', 'cli.js'), 'run', 'test/he
 childProcess.stdout.on('data', data => {
   const output = data.toString('utf8');
   console.log(output);
-  assert.equal(output, 'console.log: Hello, World!\n');
+  assert.equal(output.trim(), 'console.log: Hello, World!');
 });
 
 childProcess.stderr.on('data', data => {
