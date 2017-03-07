@@ -1,16 +1,15 @@
 # The manifest file for the command-line handler, which starts the runtime.
 manifest components/CommandLineHandler.manifest
 
-# Devtools live in the browser app inside the Firefox bundle, so they aren't
-# available by default when we run this xulapp via firefox --app (bug 1244163).
-# We have to specify manifest instructions to make their resources available.
+# Devtools live in the runtime/browser subdir, so they aren't available
+# by default when we run the xulapp via firefox --app (bug 1244163).
+# Thus we specify manifest instructions to make their resources available
+# via a manifest file, devtools.manifest, that we copy from our source dir
+# to the runtime dir when we install the runtime.
 #
-# And the resource location varies by OS, as they live in firefox/browser/
-# on Windows and Linux and Firefox.app/Contents/Resources/browser/ on Mac.
-#
-manifest devtools.manifest os=Linux
-manifest devtools.manifest os=WINNT
-manifest devtools-mac.manifest os=Darwin
+manifest dist/runtime/devtools.manifest os=WINNT
+manifest dist/runtime/devtools.manifest os=Linux
+manifest dist/Runtime.app/Contents/Resources/devtools.manifest os=Darwin
 
 # Disable addons.
 component {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0} components/DisabledAddonManager.js

@@ -56,6 +56,11 @@ const DOWNLOAD_OS = (() => {
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
+const resourcesDir = path.join(DIST_DIR,
+  process.platform === 'darwin' ?
+  path.join('Runtime.app', 'Contents', 'Resources') :
+  path.join('runtime'));
+
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
   'application/zip': 'zip',
@@ -177,18 +182,25 @@ new Promise((resolve, reject) => {
   // components twice when processing both the manifest inside the archive
   // and the expanded one.
 
-  let resourcesPath = DIST_DIR;
-  if (process.platform === 'darwin') {
-    resourcesPath = path.join(resourcesPath, 'Runtime.app', 'Contents', 'Resources');
-  }
-  else {
-    resourcesPath = path.join(resourcesPath, 'runtime');
-  }
-  const source = path.join(resourcesPath, 'browser', 'omni.ja');
-  const destination = path.join(resourcesPath, 'browser-expanded');
+  const source = path.join(resourcesDir, 'browser', 'omni.ja');
+  const destination = path.join(resourcesDir, 'browser');
 
-  // decompress fails silently on omni.ja, so we use extract-zip here instead.
-  return pify(extract)(source, { dir: destination });
+  // "decompress" fails silently on omni.ja, so we use extract-zip here instead.
+  // TODO: figure out the issue with "decompress" (f.e. that the .ja file
+  // extension is unrecognized or that the chrome.manifest file in the archive
+  // conflicts with the one already on disk).
+  return pify(extract)(source, { dir: destination })
+  .then(() => {
+    // Delete browser/omni.ja now that we've expanded its files to reduce
+    // the footprint of both this installation and any package created from it.
+    // TODO: also delete browser files that aren't necessary for devtools.
+    fs.removeSync(source);
+  });
+})
+.then(() => {
+  // Copy our custom devtools.manifest to the resources dir, so we can access
+  // the runtime's devtools.
+  fs.copySync(path.join(__dirname, '..', 'devtools.manifest'), path.join(resourcesDir, 'devtools.manifest'));
 })
 .then(() => {
   cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!\n', true);
