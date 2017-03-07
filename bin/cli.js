@@ -99,23 +99,33 @@ function packageApp() {
 
   // Copy XUL application to target directory.
   const xulAppSourceDir = path.join(__dirname, '..');
+  // TODO: copy XUL app to subdir to segregate those files from the GRE
+  // (and move browser dir into it so we still have access to devtools).
   const xulAppTargetDir = process.platform === 'darwin' ?
-                            path.join(targetDir, 'Contents', 'Resources', 'xulapp') :
-                            path.join(targetDir, 'xulapp');
-  fs.mkdirSync(xulAppTargetDir);
+                            path.join(targetDir, 'Contents', 'Resources') :
+                            path.join(targetDir);
   const xulAppFiles = [
-    'application.ini', 'chrome',
+    'application.ini',
+    'chrome',
     'chrome.manifest',
     'components',
-    'defaults',
     'modules',
   ];
   for (const file of xulAppFiles) {
     fs.copySync(path.join(xulAppSourceDir, file), path.join(xulAppTargetDir, file));
   }
 
+  const defaultPrefFiles = [
+    'debugger.js',
+    'devtools.js',
+    'prefs.js',
+  ];
+  for (const file of defaultPrefFiles) {
+    fs.copySync(path.join(xulAppSourceDir, 'defaults', 'preferences', file),
+                path.join(xulAppTargetDir, 'defaults', 'pref', file));
+  }
+
   // Add XUL manifest to runtime manifest.
-  // Copy XUL application to target directory.
   const runtimeManifest = process.platform === 'darwin' ?
                           path.join(targetDir, 'Contents', 'Resources', 'chrome.manifest') :
                           path.join(targetDir, 'chrome.manifest');

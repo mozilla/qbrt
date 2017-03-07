@@ -198,6 +198,9 @@ new Promise((resolve, reject) => {
   });
 })
 .then(() => {
+  // TODO: copy devtools.js/debugger.js from browser/defaults/preferences/
+  // to defaults/pref and then remove our copies in defaults/preferences/.
+
   // Copy our custom devtools.manifest to the resources dir, so we can access
   // the runtime's devtools.
   fs.copySync(path.join(__dirname, '..', 'devtools.manifest'), path.join(resourcesDir, 'devtools.manifest'));

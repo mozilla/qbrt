@@ -128,7 +128,7 @@ CommandLineHandler.prototype = {
       }
     }
     else {
-      let webappDir = Services.dirsvc.get('CurProcD', Ci.nsIFile).parent;
+      let webappDir = Services.dirsvc.get('CurProcD', Ci.nsIFile);
       webappDir.append('webapp');
       let packageJsonFile = webappDir.clone();
       packageJsonFile.append('package.json');
