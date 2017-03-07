@@ -23,11 +23,17 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const ChildProcess = require('child_process');
+const url = require('url');
 
-const validCommands = [ null, 'run' ];
+const DIST_DIR = path.join(__dirname, '..', 'dist');
+
+const validCommands = [ null, 'package', 'run' ];
 const { command, argv } = commandLineCommands(validCommands);
 
 switch(command) {
+case 'package':
+  packageApp();
+  break;
 case 'run':
   run();
   break;
@@ -40,8 +46,6 @@ function run() {
     { name: 'wait-for-jsdebugger', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
-
-  const DIST_DIR = path.join(__dirname, '..', 'dist');
 
   const EXECUTABLE_DIR = process.platform === 'darwin' ?
                          path.join(DIST_DIR, 'Runtime.app', 'Contents', 'MacOS') :
@@ -74,4 +78,74 @@ function run() {
     fs.removeSync(profileDir);
     process.exit(code);
   });
+}
+
+function packageApp() {
+  const optionDefinitions = [
+    { name: 'path', type: String, defaultOption: true },
+  ];
+  const options = commandLineArgs(optionDefinitions, { argv: argv });
+
+  const runtimeDir = process.platform === 'darwin' ?
+                     path.join(DIST_DIR, 'Runtime.app') :
+                     path.join(DIST_DIR, 'runtime');
+
+  // const appDir = path.resolve();
+
+  const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
+console.log(targetDir);
+
+  // Copy runtime to target directory.
+  fs.copySync(runtimeDir, targetDir);
+
+  // Copy XUL application to target directory.
+  const xulAppSourceDir = path.join(__dirname, '..');
+  const xulAppTargetDir = process.platform === 'darwin' ?
+                            path.join(targetDir, 'Contents', 'Resources', 'xulapp') :
+                            path.join(targetDir, 'xulapp');
+  fs.mkdirSync(xulAppTargetDir);
+  const xulAppFiles = [
+    'application.ini', 'chrome',
+    'chrome.manifest',
+    'components',
+    'defaults',
+    'modules',
+  ];
+  for (const file of xulAppFiles) {
+    fs.copySync(path.join(xulAppSourceDir, file), path.join(xulAppTargetDir, file));
+  }
+
+  // Add XUL manifest to runtime manifest.
+  // Copy XUL application to target directory.
+  const runtimeManifest = process.platform === 'darwin' ?
+                          path.join(targetDir, 'Contents', 'Resources', 'chrome.manifest') :
+                          path.join(targetDir, 'chrome.manifest');
+  fs.appendFileSync(runtimeManifest, '\nmanifest xulapp/chrome.manifest\n');
+
+  // Copy app to target directory.
+  const appSourcePath = path.resolve(options.path);
+  if (fs.existsSync(appSourcePath)) {
+    console.log(path.dirname(appSourcePath));
+    const webAppSourceDir = path.dirname(appSourcePath);
+    const webAppTargetDir = process.platform === 'darwin' ?
+                            path.join(targetDir, 'Contents', 'Resources', 'webapp') :
+                            path.join(targetDir, 'webapp');
+    fs.copySync(webAppSourceDir, webAppTargetDir);
+
+    const appPackageJson = path.join(webAppTargetDir, 'package.json');
+    fs.writeFileSync(appPackageJson, JSON.stringify({ main: path.basename(appSourcePath) }));
+  }
+  else {
+    const webAppSourceDir = path.join(__dirname, '..', 'shell');
+    const webAppTargetDir = process.platform === 'darwin' ?
+                            path.join(targetDir, 'Contents', 'Resources', 'webapp') :
+                            path.join(targetDir, 'webapp');
+    fs.copySync(webAppSourceDir, webAppTargetDir);
+
+    const appPackageJson = path.join(webAppTargetDir, 'package.json');
+    fs.writeFileSync(appPackageJson, JSON.stringify({ main: options.path }));
+  }
+
+  // Package target directory.
+  // Delete target directory.
 }

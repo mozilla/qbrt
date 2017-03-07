@@ -15,7 +15,7 @@
 'use strict';
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
-const { Runtime } = Cu.import('resource:///modules/Runtime.jsm', {});
+const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 
 const WINDOW_FEATURES = [
