@@ -23,6 +23,7 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const ChildProcess = require('child_process');
+const plist = require('simple-plist');
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
@@ -125,8 +126,20 @@ function packageApp() {
                 path.join(xulAppTargetDir, 'defaults', 'pref', file));
   }
 
-  // Copy the stub executable to the executable dir.
-  fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(targetDir, 'Contents', 'MacOS', 'qbrt'));
+  switch(process.platform) {
+  case 'darwin': {
+    // Copy the stub executable to the executable dir.
+    fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(targetDir, 'Contents', 'MacOS', 'qbrt'));
+
+    // Configure the bundle to run the stub executable.
+    const plistFile = path.join(targetDir, 'Contents', 'Info.plist');
+    const appPlist = plist.readFileSync(plistFile);
+    appPlist.CFBundleExecutable = 'qbrt';
+    plist.writeFileSync(plistFile, appPlist);
+
+    break;
+  }
+  }
 
   // Copy app to target directory.
   const appSourcePath = path.resolve(options.path);
