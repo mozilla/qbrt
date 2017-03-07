@@ -31,12 +31,12 @@ const validCommands = [ null, 'package', 'run' ];
 const { command, argv } = commandLineCommands(validCommands);
 
 switch(command) {
-case 'package':
-  packageApp();
-  break;
-case 'run':
-  run();
-  break;
+  case 'package':
+    packageApp();
+    break;
+  case 'run':
+    run();
+    break;
 }
 
 function run() {
@@ -127,18 +127,18 @@ function packageApp() {
   }
 
   switch(process.platform) {
-  case 'darwin': {
-    // Copy the stub executable to the executable dir.
-    fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(targetDir, 'Contents', 'MacOS', 'qbrt'));
+    case 'darwin': {
+      // Copy the stub executable to the executable dir.
+      fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(targetDir, 'Contents', 'MacOS', 'qbrt'));
 
-    // Configure the bundle to run the stub executable.
-    const plistFile = path.join(targetDir, 'Contents', 'Info.plist');
-    const appPlist = plist.readFileSync(plistFile);
-    appPlist.CFBundleExecutable = 'qbrt';
-    plist.writeFileSync(plistFile, appPlist);
+      // Configure the bundle to run the stub executable.
+      const plistFile = path.join(targetDir, 'Contents', 'Info.plist');
+      const appPlist = plist.readFileSync(plistFile);
+      appPlist.CFBundleExecutable = 'qbrt';
+      plist.writeFileSync(plistFile, appPlist);
 
-    break;
-  }
+      break;
+    }
   }
 
   // Copy app to target directory.

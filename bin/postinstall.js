@@ -30,26 +30,26 @@ const pify = require('pify');
 
 const DOWNLOAD_OS = (() => {
   switch (process.platform) {
-  case 'win32':
-    switch (process.arch) {
-    case 'ia32':
-      return 'win';
-    case 'x64':
-      return 'win64';
-    default:
-      throw new Error(`unsupported Windows architecture ${process.arch}`);
-    }
-  case 'linux':
-    switch (process.arch) {
-    case 'ia32':
-      return 'linux';
-    case 'x64':
-      return 'linux64';
-    default:
-      throw new Error(`unsupported Linux architecture ${process.arch}`);
-    }
-  case 'darwin':
-    return 'osx';
+    case 'win32':
+      switch (process.arch) {
+        case 'ia32':
+          return 'win';
+        case 'x64':
+          return 'win64';
+        default:
+          throw new Error(`unsupported Windows architecture ${process.arch}`);
+      }
+    case 'linux':
+      switch (process.arch) {
+        case 'ia32':
+          return 'linux';
+        case 'x64':
+          return 'linux64';
+        default:
+          throw new Error(`unsupported Linux architecture ${process.arch}`);
+      }
+    case 'darwin':
+      return 'osx';
   }
 })();
 
