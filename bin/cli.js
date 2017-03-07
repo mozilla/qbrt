@@ -23,7 +23,6 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const ChildProcess = require('child_process');
-const url = require('url');
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
@@ -93,7 +92,7 @@ function packageApp() {
   // const appDir = path.resolve();
 
   const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
-console.log(targetDir);
+  console.log(targetDir);
 
   // Copy runtime to target directory.
   fs.copySync(runtimeDir, targetDir);

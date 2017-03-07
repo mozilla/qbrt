@@ -16,7 +16,7 @@
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 
-const { NetUtil } = Cu.import("resource://gre/modules/NetUtil.jsm", {});
+const { NetUtil } = Cu.import('resource://gre/modules/NetUtil.jsm', {});
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 const { XPCOMUtils } = Cu.import('resource://gre/modules/XPCOMUtils.jsm', {});
