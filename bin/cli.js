@@ -125,12 +125,6 @@ function packageApp() {
                 path.join(xulAppTargetDir, 'defaults', 'pref', file));
   }
 
-  // Add XUL manifest to runtime manifest.
-  const runtimeManifest = process.platform === 'darwin' ?
-                          path.join(targetDir, 'Contents', 'Resources', 'chrome.manifest') :
-                          path.join(targetDir, 'chrome.manifest');
-  fs.appendFileSync(runtimeManifest, '\nmanifest xulapp/chrome.manifest\n');
-
   // Copy app to target directory.
   const appSourcePath = path.resolve(options.path);
   if (fs.existsSync(appSourcePath)) {
