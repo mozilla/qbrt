@@ -125,6 +125,9 @@ function packageApp() {
                 path.join(xulAppTargetDir, 'defaults', 'pref', file));
   }
 
+  // Copy the stub executable to the executable dir.
+  fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(targetDir, 'Contents', 'MacOS', 'qbrt'));
+
   // Copy app to target directory.
   const appSourcePath = path.resolve(options.path);
   if (fs.existsSync(appSourcePath)) {
