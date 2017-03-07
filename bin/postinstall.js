@@ -171,20 +171,23 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  // Unzip the browser/omni.ja archive so we can access its devtools.
-  // decompress fails silently on omni.ja, so we use extract-zip here instead.
+  // Expand the browser/omni.ja archive so we can access its devtools.
+  // We expand it to a different directory so it doesn't overwrite the chrome
+  // manifest in the browser/ directory and cause the runtime to try to load
+  // components twice when processing both the manifest inside the archive
+  // and the expanded one.
 
-  let browserArchivePath = DIST_DIR;
+  let resourcesPath = DIST_DIR;
   if (process.platform === 'darwin') {
-    browserArchivePath = path.join(browserArchivePath, 'Runtime.app', 'Contents', 'Resources');
+    resourcesPath = path.join(resourcesPath, 'Runtime.app', 'Contents', 'Resources');
   }
   else {
-    browserArchivePath = path.join(browserArchivePath, 'runtime');
+    resourcesPath = path.join(resourcesPath, 'runtime');
   }
-  browserArchivePath = path.join(browserArchivePath, 'browser');
+  const source = path.join(resourcesPath, 'browser', 'omni.ja');
+  const destination = path.join(resourcesPath, 'browser-expanded');
 
-  const source = path.join(browserArchivePath, 'omni.ja');
-  const destination = browserArchivePath;
+  // decompress fails silently on omni.ja, so we use extract-zip here instead.
   return pify(extract)(source, { dir: destination });
 })
 .then(() => {

@@ -2,14 +2,14 @@
 # is packaged.  In a downloaded nightly build, it's in interfaces.xpt,
 # while in a local build it's in jsinspector.xpt.  We cover both bases,
 # since nothing bad happens if one or the other file isn't found.
-interfaces dist/firefox/browser/components/interfaces.xpt
-interfaces dist/firefox/browser/components/jsinspector.xpt
+interfaces dist/firefox/browser-expanded/components/interfaces.xpt
+interfaces dist/firefox/browser-expanded/components/jsinspector.xpt
 
-locale devtools en-US dist/firefox/browser/chrome/en-US/locale/en-US/devtools/client/
-locale devtools-shared en-US dist/firefox/browser/chrome/en-US/locale/en-US/devtools/shared/
-content devtools dist/firefox/browser/chrome/devtools/content/
-resource devtools dist/firefox/browser/chrome/devtools/modules/devtools/
-skin devtools classic/1.0 dist/firefox/browser/chrome/devtools/skin/
-component {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32} dist/firefox/browser/components/devtools-startup.js
+locale devtools en-US dist/firefox/browser-expanded/chrome/en-US/locale/en-US/devtools/client/
+locale devtools-shared en-US dist/firefox/browser-expanded/chrome/en-US/locale/en-US/devtools/shared/
+content devtools dist/firefox/browser-expanded/chrome/devtools/content/
+resource devtools dist/firefox/browser-expanded/chrome/devtools/modules/devtools/
+skin devtools classic/1.0 dist/firefox/browser-expanded/chrome/devtools/skin/
+component {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32} dist/firefox/browser-expanded/components/devtools-startup.js
 contract @mozilla.org/devtools/startup-clh;1 {9e9a9283-0ce9-4e4a-8f1c-ba129a032c32}
 category command-line-handler m-devtools @mozilla.org/devtools/startup-clh;1
