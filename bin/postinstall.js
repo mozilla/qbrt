@@ -181,9 +181,6 @@ new Promise((resolve, reject) => {
   // TODO: move qbrt xulapp files into a separate source directory
   // that we can copy in one fell swoop.
 
-  // TODO: copy devtools.js/debugger.js from browser/defaults/preferences/
-  // to defaults/pref and then remove our copies in defaults/preferences/.
-
   const sourceDir = path.join(__dirname, '..');
   const targetDir = path.join(resourcesDir, 'qbrt');
 
@@ -223,6 +220,21 @@ new Promise((resolve, reject) => {
   // TODO: also delete browser files that aren't necessary for devtools.
 
   fs.removeSync(browserJAR);
+})
+.then(() => {
+  // Copy devtools pref files from browser to qbert.
+
+  const sourceDir = path.join(resourcesDir, 'browser', 'defaults', 'preferences');
+  const targetDir = path.join(resourcesDir, 'qbrt', 'defaults', 'preferences');
+
+  const prefFiles = [
+    'debugger.js',
+    'devtools.js',
+  ];
+
+  for (const file of prefFiles) {
+    fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
+  }
 })
 .then(() => {
   // Move the browser xulapp into a subdirectory of the qbrt xulapp,
