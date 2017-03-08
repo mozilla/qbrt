@@ -6,19 +6,7 @@ manifest components/CommandLineHandler.manifest
 # Thus we instruct the chrome registry to make their resources available
 # via a manifest file, devtools.manifest, that we copy from our source dir
 # to the runtime dir when we install the runtime.
-#
-# In order to process devtools.manifest, we have to reference it here.
-# Depending on the location of this file (the source dir or the runtime dir)
-# the relative location of devtools.manifest will be different.  So we
-# reference it in both locations, only one of which will work.
-#
-# TODO: rewrite this file when copying it to the runtime dir so it only
-# ever references devtools at their correct location.
-#
 manifest devtools.manifest
-manifest dist/runtime/devtools.manifest os=WINNT
-manifest dist/runtime/devtools.manifest os=Linux
-manifest dist/Runtime.app/Contents/Resources/devtools.manifest os=Darwin
 
 # Disable addons.
 component {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0} components/DisabledAddonManager.js

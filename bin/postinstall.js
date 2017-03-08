@@ -27,6 +27,7 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
+const plist = require('simple-plist');
 
 const DOWNLOAD_OS = (() => {
   switch (process.platform) {
@@ -55,11 +56,10 @@ const DOWNLOAD_OS = (() => {
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
-
-const resourcesDir = path.join(DIST_DIR,
-  process.platform === 'darwin' ?
-  path.join('Runtime.app', 'Contents', 'Resources') :
-  path.join('runtime'));
+const installDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
+const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
+const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
@@ -176,34 +176,86 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  // Expand the browser/omni.ja archive so we can access its devtools.
-  // We expand it to a different directory so it doesn't overwrite the chrome
-  // manifest in the browser/ directory and cause the runtime to try to load
-  // components twice when processing both the manifest inside the archive
-  // and the expanded one.
+  // Copy the qbrt xulapp to the target directory.
 
-  const source = path.join(resourcesDir, 'browser', 'omni.ja');
-  const destination = path.join(resourcesDir, 'browser');
+  // TODO: move qbrt xulapp files into a separate source directory
+  // that we can copy in one fell swoop.
+
+  // TODO: copy devtools.js/debugger.js from browser/defaults/preferences/
+  // to defaults/pref and then remove our copies in defaults/preferences/.
+
+  const sourceDir = path.join(__dirname, '..');
+  const targetDir = path.join(resourcesDir, 'qbrt');
+
+  fs.mkdirSync(targetDir);
+
+  const appFiles = [
+    'application.ini',
+    'chrome',
+    'chrome.manifest',
+    'components',
+    'defaults',
+    'devtools.manifest',
+    'modules',
+    'shell',
+  ];
+
+  for (const file of appFiles) {
+    fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
+  }
+})
+.then(() => {
+  // Expand the browser xulapp's JAR archive so we can access its devtools.
+
+  const targetDir = path.join(resourcesDir, 'browser');
 
   // "decompress" fails silently on omni.ja, so we use extract-zip here instead.
   // TODO: figure out the issue with "decompress" (f.e. that the .ja file
   // extension is unrecognized or that the chrome.manifest file in the archive
   // conflicts with the one already on disk).
-  return pify(extract)(source, { dir: destination })
-  .then(() => {
-    // Delete browser/omni.ja now that we've expanded its files to reduce
-    // the footprint of both this installation and any package created from it.
-    // TODO: also delete browser files that aren't necessary for devtools.
-    fs.removeSync(source);
+  return pify(extract)(browserJAR, { dir: targetDir });
+})
+.then(() => {
+  // Delete the browser xulapp's JAR archive now that we've expanded its files
+  // to reduce the footprint of both this installation and any package created
+  // from it.
+
+  // TODO: also delete browser files that aren't necessary for devtools.
+
+  fs.removeSync(browserJAR);
+})
+.then(() => {
+  // Move the browser xulapp into a subdirectory of the qbrt xulapp,
+  // so the latter can access the former's devtools.
+
+  const sourceDir = path.join(resourcesDir, 'browser');
+  const targetDir = path.join(resourcesDir, 'qbrt', 'browser');
+
+  // fs-extra.moveSync() is coming soon, according to this pull request
+  // <https://github.com/jprichardson/node-fs-extra/pull/381>;
+  // but in the meantime we need to perform the operation asynchronously.
+  //
+  return new Promise((resolve, reject) => {
+    fs.move(sourceDir, targetDir, err => err ? reject(err) : resolve());
   });
 })
 .then(() => {
-  // TODO: copy devtools.js/debugger.js from browser/defaults/preferences/
-  // to defaults/pref and then remove our copies in defaults/preferences/.
+  // Copy and configure the stub executable.
 
-  // Copy our custom devtools.manifest to the resources dir, so we can access
-  // the runtime's devtools.
-  fs.copySync(path.join(__dirname, '..', 'devtools.manifest'), path.join(resourcesDir, 'devtools.manifest'));
+  switch(process.platform) {
+    case 'darwin': {
+      // Copy the stub executable to the executable dir.
+      fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(executableDir, 'qbrt'));
+
+      // Configure the bundle to run the stub executable.
+      const plistFile = path.join(installDir, 'Contents', 'Info.plist');
+      const appPlist = plist.readFileSync(plistFile);
+      appPlist.CFBundleExecutable = 'qbrt';
+      plist.writeFileSync(plistFile, appPlist);
+
+      break;
+    }
+  }
 })
 .then(() => {
   cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!\n', true);

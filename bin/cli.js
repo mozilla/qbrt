@@ -23,7 +23,6 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const ChildProcess = require('child_process');
-const plist = require('simple-plist');
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
@@ -47,6 +46,8 @@ function run() {
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
 
+  // TODO: refactor EXECUTABLE_DIR and EXECUTABLE using latest best practices.
+
   const EXECUTABLE_DIR = process.platform === 'darwin' ?
                          path.join(DIST_DIR, 'Runtime.app', 'Contents', 'MacOS') :
                          path.join(DIST_DIR, 'runtime');
@@ -55,7 +56,9 @@ function run() {
                      path.join(EXECUTABLE_DIR, 'firefox.exe') :
                      path.join(EXECUTABLE_DIR, 'firefox');
 
-  const applicationIni = path.join(__dirname, '..', 'application.ini');
+  const installDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+  const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
+  const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
 
   let executableArgs = [
@@ -98,50 +101,7 @@ function packageApp() {
   // Copy runtime to target directory.
   fs.copySync(runtimeDir, targetDir);
 
-  // Copy XUL application to target directory.
-  const xulAppSourceDir = path.join(__dirname, '..');
-  // TODO: copy XUL app to subdir to segregate those files from the GRE
-  // (and move browser dir into it so we still have access to devtools).
-  const xulAppTargetDir = process.platform === 'darwin' ?
-                            path.join(targetDir, 'Contents', 'Resources') :
-                            path.join(targetDir);
-  const xulAppFiles = [
-    'application.ini',
-    'chrome',
-    'chrome.manifest',
-    'components',
-    'modules',
-  ];
-  for (const file of xulAppFiles) {
-    fs.copySync(path.join(xulAppSourceDir, file), path.join(xulAppTargetDir, file));
-  }
-
-  const defaultPrefFiles = [
-    'debugger.js',
-    'devtools.js',
-    'prefs.js',
-  ];
-  for (const file of defaultPrefFiles) {
-    fs.copySync(path.join(xulAppSourceDir, 'defaults', 'preferences', file),
-                path.join(xulAppTargetDir, 'defaults', 'pref', file));
-  }
-
-  switch(process.platform) {
-    case 'darwin': {
-      // Copy the stub executable to the executable dir.
-      fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(targetDir, 'Contents', 'MacOS', 'qbrt'));
-
-      // Configure the bundle to run the stub executable.
-      const plistFile = path.join(targetDir, 'Contents', 'Info.plist');
-      const appPlist = plist.readFileSync(plistFile);
-      appPlist.CFBundleExecutable = 'qbrt';
-      plist.writeFileSync(plistFile, appPlist);
-
-      break;
-    }
-  }
-
-  // Copy app to target directory.
+  // Copy webapp to target directory.
   const appSourcePath = path.resolve(options.path);
   if (fs.existsSync(appSourcePath)) {
     console.log(path.dirname(appSourcePath));

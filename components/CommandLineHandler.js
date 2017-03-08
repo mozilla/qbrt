@@ -128,16 +128,31 @@ CommandLineHandler.prototype = {
       }
     }
     else {
-      let webappDir = Services.dirsvc.get('CurProcD', Ci.nsIFile);
+      let webappDir = Services.dirsvc.get('CurProcD', Ci.nsIFile).parent;
       webappDir.append('webapp');
       let packageJsonFile = webappDir.clone();
       packageJsonFile.append('package.json');
       let data = JSON.parse(readFile(packageJsonFile));
-      let mainFile = webappDir.clone();
-      // This will break if data.main is a path rather than just a filename.
-      // TODO: resolve path properly.
-      mainFile.append(data.main);
-      appPath = mainFile;
+
+      try {
+        appURI = Services.io.newURI(data.main, null, null);
+      }
+      catch (ex) {}
+
+      if (appURI) {
+        // If the app argument is a URI, run it in the shell.
+        appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
+        appPath.append('shell');
+        appPath.append('main.js');
+        commandLineArgs.push(data.main);
+      }
+      else {
+        // This will break if data.main is a path rather than just a filename.
+        // TODO: resolve path properly.
+        let mainFile = webappDir.clone();
+        mainFile.append(data.main);
+        appPath = mainFile;
+      }
     }
 
     try {

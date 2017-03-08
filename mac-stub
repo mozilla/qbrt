@@ -2,4 +2,4 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-${DIR}/firefox --app ${DIR}/../Resources/application.ini
+${DIR}/firefox --app ${DIR}/../Resources/qbrt/application.ini
