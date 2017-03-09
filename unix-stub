@@ -49,4 +49,10 @@ rreadlink() ( # Execute the function in a *subshell* to localize variables and t
 
 DIR=$(dirname -- "$(rreadlink "$0")")
 
-${DIR}/firefox --app ${DIR}/../Resources/qbrt/application.ini
+RESOURCES_PATH=''
+UNAME=$(uname)
+if [[ "$UNAME" == 'Darwin' ]]; then
+   RESOURCES_PATH='../Resources/'
+fi
+
+${DIR}/firefox --app ${DIR}/${RESOURCES_PATH}qbrt/application.ini
