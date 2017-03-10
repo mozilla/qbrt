@@ -17,6 +17,7 @@
 'use strict';
 
 const assert = require('assert');
+const decompress = require('decompress');
 const fs = require('fs-extra');
 const os = require('os');
 const packageJson = require('../package.json');
@@ -24,7 +25,7 @@ const path = require('path');
 const spawn = require('child_process').spawn;
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
-const appDir = path.join(tempDir, 'AppName.app');
+const appDir = path.join(tempDir, process.platform === 'darwin' ? 'AppName.app' : 'appname');
 
 // Paths are relative to the top-level directory in which `npm test` is run.
 const childProcess = spawn('node', [ path.join('bin', 'cli.js'), 'package', 'test/hello-world.js' ]);
@@ -49,7 +50,13 @@ new Promise((resolve, reject) => {
 
 })
 .then(() => {
-  if (process.platform === 'darwin') {
+  if (process.platform === 'linux') {
+    const source = path.join('dist', 'appname.tgz');
+    const destination = tempDir;
+    fs.removeSync(path.join(destination, 'appname'));
+    return decompress(source, destination);
+  }
+  else if (process.platform === 'darwin') {
     const mountPoint = path.join(tempDir, 'volume');
     return new Promise((resolve, reject) => {
       const dmgFile = path.join('dist', 'AppName.dmg');
@@ -90,7 +97,10 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  const child = spawn(path.join(appDir, 'Contents', 'MacOS', 'qbrt'));
+  const executable = process.platform === 'darwin' ?
+    path.join(appDir, 'Contents', 'MacOS', 'qbrt') :
+    path.join(appDir, 'launcher.sh');
+  const child = spawn(executable);
   return new Promise((resolve, reject) => {
     child.stdout.on('data', data => {
       const output = data.toString('utf8').trim();
