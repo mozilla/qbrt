@@ -94,7 +94,10 @@ function packageApp() {
 
   // const appDir = path.resolve();
 
-  const targetDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
+  // TODO: replace all occurrences of 'appname' with actual name of app.
+  const targetDirName = process.platform === 'darwin' ? 'AppName.app' : 'appname';
+  const targetDir = path.join(tempDir, targetDirName);
   console.log(targetDir);
 
   // Copy runtime to target directory.
@@ -125,5 +128,17 @@ function packageApp() {
   }
 
   // Package target directory.
-  // Delete target directory.
+  if (process.platform === 'darwin') {
+    const dmgFile = path.join(DIST_DIR, 'AppName.dmg');
+    // TODO: notify user friendlily that DMG file is being created:
+    // "Copying app to ${dmgFile}…"
+    fs.removeSync(dmgFile);
+    const result = ChildProcess.spawnSync('hdiutil', ['create', '-srcfolder', targetDir, dmgFile]);
+    if (result.status !== 0) {
+      throw new Error(result.stderr.toString());
+    }
+    console.log(dmgFile);
+  }
+
+  // Delete temp directory.
 }
