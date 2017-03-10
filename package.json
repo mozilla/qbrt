@@ -11,7 +11,7 @@
   "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
-    "test": "eslint . && node ./test/test-hello-world.js"
+    "test": "eslint . && node ./test/test-hello-world.js && node ./test/test-package.js"
   },
   "dependencies": {
     "archiver": "^1.3.0",
