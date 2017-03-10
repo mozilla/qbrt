@@ -139,6 +139,22 @@ function packageApp() {
     }
     console.log(dmgFile);
   }
+  else if (process.platform === 'linux') {
+    const archiver = require('archiver');
+
+    new Promise((resolve, reject) => {
+      const tarFile = fs.createWriteStream(path.join(DIST_DIR, 'appname.tgz'));
+      const archive = archiver('tar', { gzip: true });
+      tarFile.on('close', resolve);
+      archive.on('error', reject);
+      archive.pipe(tarFile);
+      archive.directory(targetDir, path.basename(targetDir));
+      archive.finalize();
+    })
+    .then(() => {
+      console.log('Archived app.');
+    });
+  }
 
   // Delete temp directory.
 }
