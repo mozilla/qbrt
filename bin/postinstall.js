@@ -255,9 +255,13 @@ new Promise((resolve, reject) => {
   // Copy and configure the stub executable.
 
   switch(process.platform) {
-    case 'darwin': {
+    case 'win32': {
       // Copy the stub executable to the executable dir.
-      fs.copySync(path.join(__dirname, '..', 'mac-stub'), path.join(executableDir, 'qbrt'));
+      fs.copySync(path.join(__dirname, '..', 'launcher.bat'), path.join(executableDir, 'launcher.bat'));
+      break;
+    }
+    case 'darwin': {
+      fs.copySync(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'));
 
       // Configure the bundle to run the stub executable.
       const plistFile = path.join(installDir, 'Contents', 'Info.plist');
@@ -265,6 +269,11 @@ new Promise((resolve, reject) => {
       appPlist.CFBundleExecutable = 'qbrt';
       plist.writeFileSync(plistFile, appPlist);
 
+      break;
+    }
+    case 'linux': {
+      // Copy the stub executable to the executable dir.
+      fs.copySync(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'));
       break;
     }
   }

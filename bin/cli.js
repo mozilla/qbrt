@@ -64,6 +64,7 @@ function run() {
   let executableArgs = [
     '--app', applicationIni,
     '--profile', profileDir,
+    '--new-instance',
     options.path,
   ];
 
@@ -71,8 +72,6 @@ function run() {
   // but Windows needs the former, so we use it for all platforms.
   options.jsdebugger && executableArgs.push('-jsdebugger');
   options['wait-for-jsdebugger'] && executableArgs.push('--wait-for-jsdebugger');
-
-  process.env.MOZ_NO_REMOTE = 1;
 
   const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
     stdio: 'inherit',
