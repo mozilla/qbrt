@@ -50,6 +50,12 @@ new Promise((resolve, reject) => {
 
 })
 .then(() => {
+  if (process.platform === 'win32') {
+    const source = path.join('dist', 'appname.zip');
+    const destination = tempDir;
+    fs.removeSync(path.join(destination, 'appname'));
+    return decompress(source, destination);
+  }
   if (process.platform === 'linux') {
     const source = path.join('dist', 'appname.tgz');
     const destination = tempDir;
@@ -97,10 +103,23 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  const executable = process.platform === 'darwin' ?
-    path.join(appDir, 'Contents', 'MacOS', 'qbrt') :
-    path.join(appDir, 'launcher.sh');
-  const child = spawn(executable);
+    let executable, args = [];
+
+    switch (process.platform) {
+      case 'win32':
+        // TODO: invoke the launcher rather than the runtime.
+        executable = path.join(appDir, 'firefox.exe');
+        args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
+        break;
+      case 'darwin':
+        executable = path.join(appDir, 'Contents', 'MacOS', 'qbrt');
+        break;
+      case 'linux':
+        executable = path.join(appDir, 'launcher.sh');
+        break;
+    }
+
+  const child = spawn(executable, args, { shell: process.platform === 'win32' ? true : false });
   return new Promise((resolve, reject) => {
     child.stdout.on('data', data => {
       const output = data.toString('utf8').trim();
