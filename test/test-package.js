@@ -27,27 +27,25 @@ const spawn = require('child_process').spawn;
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
 const appDir = path.join(tempDir, process.platform === 'darwin' ? 'AppName.app' : 'appname');
 
-// Paths are relative to the top-level directory in which `npm test` is run.
-const childProcess = spawn('node', [ path.join('bin', 'cli.js'), 'package', 'test/hello-world.js' ]);
-
 new Promise((resolve, reject) => {
-  childProcess.stdout.on('data', data => {
+  const child = spawn('node', [ path.join('bin', 'cli.js'), 'package', 'test/hello-world.js' ]);
+
+  child.stdout.on('data', data => {
     const output = data.toString('utf8');
     console.log(output.trim());
-    // assert.equal(output.trim(), 'console.log: Hello, World!');
+    // TODO: determine what package command should output and assert it does.
   });
 
-  childProcess.stderr.on('data', data => {
+  child.stderr.on('data', data => {
     const error = data.toString('utf8');
     console.error(error);
     reject(error);
   });
 
-  childProcess.on('close', code => {
+  child.on('exit', code => {
     assert.equal(code, 0);
     resolve();
   });
-
 })
 .then(() => {
   if (process.platform === 'win32') {
@@ -66,15 +64,15 @@ new Promise((resolve, reject) => {
     const mountPoint = path.join(tempDir, 'volume');
     return new Promise((resolve, reject) => {
       const dmgFile = path.join('dist', 'AppName.dmg');
-      const childProcess = spawn(
+      const child = spawn(
         'hdiutil',
         [ 'attach', dmgFile, '-mountpoint', mountPoint, '-nobrowse', '-quiet' ],
         {
           stdio: 'inherit',
         }
       );
-      childProcess.on('exit', resolve);
-      childProcess.on('error', reject);
+      child.on('exit', resolve);
+      child.on('error', reject);
     })
     .then((exitCode) => {
       assert.strictEqual(exitCode, 0, 'app DMG package attached');
@@ -86,15 +84,15 @@ new Promise((resolve, reject) => {
     })
     .then(() => {
       return new Promise((resolve, reject) => {
-        const childProcess = spawn(
+        const child = spawn(
           'hdiutil',
           [ 'detach', mountPoint, '-quiet' ],
           {
             stdio: 'inherit',
           }
         );
-        childProcess.on('exit', resolve);
-        childProcess.on('error', reject);
+        child.on('exit', resolve);
+        child.on('error', reject);
       });
     })
     .then((exitCode) => {
