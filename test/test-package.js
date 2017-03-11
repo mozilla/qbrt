@@ -103,21 +103,21 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-    let executable, args = [];
+  let executable, args = [];
 
-    switch (process.platform) {
-      case 'win32':
-        // TODO: invoke the launcher rather than the runtime.
-        executable = path.join(appDir, 'firefox.exe');
-        args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
-        break;
-      case 'darwin':
-        executable = path.join(appDir, 'Contents', 'MacOS', 'qbrt');
-        break;
-      case 'linux':
-        executable = path.join(appDir, 'launcher.sh');
-        break;
-    }
+  switch (process.platform) {
+    case 'win32':
+      // TODO: invoke the launcher rather than the runtime.
+      executable = path.join(appDir, 'firefox.exe');
+      args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
+      break;
+    case 'darwin':
+      executable = path.join(appDir, 'Contents', 'MacOS', 'qbrt');
+      break;
+    case 'linux':
+      executable = path.join(appDir, 'launcher.sh');
+      break;
+  }
 
   const child = spawn(executable, args, { shell: process.platform === 'win32' ? true : false });
   return new Promise((resolve, reject) => {
