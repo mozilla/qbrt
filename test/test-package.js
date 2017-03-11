@@ -16,9 +16,15 @@
 
 'use strict';
 
+// Polyfill Promise.prototype.finally().
+require('promise.prototype.finally').shim();
+
+// Require *pify* out of order so we can use it to promisify other modules.
+const pify = require('pify');
+
 const assert = require('assert');
 const decompress = require('decompress');
-const fs = require('fs-extra');
+const fs = pify(require('fs-extra'));
 const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
@@ -26,6 +32,8 @@ const spawn = require('child_process').spawn;
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
 const appDir = path.join(tempDir, process.platform === 'darwin' ? 'AppName.app' : 'appname');
+
+let exitCode = 0;
 
 new Promise((resolve, reject) => {
   const child = spawn('node', [ path.join('bin', 'cli.js'), 'package', 'test/hello-world.js' ]);
@@ -51,63 +59,48 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = path.join('dist', 'appname.zip');
     const destination = tempDir;
-    fs.removeSync(path.join(destination, 'appname'));
-    return decompress(source, destination);
-  }
-  if (process.platform === 'linux') {
-    const source = path.join('dist', 'appname.tgz');
-    const destination = tempDir;
-    fs.removeSync(path.join(destination, 'appname'));
     return decompress(source, destination);
   }
   else if (process.platform === 'darwin') {
     const mountPoint = path.join(tempDir, 'volume');
     return new Promise((resolve, reject) => {
       const dmgFile = path.join('dist', 'AppName.dmg');
-      const child = spawn(
-        'hdiutil',
-        [ 'attach', dmgFile, '-mountpoint', mountPoint, '-nobrowse', '-quiet' ],
-        {
-          stdio: 'inherit',
-        }
-      );
+      const child = spawn('hdiutil', ['attach', dmgFile, '-mountpoint', mountPoint, '-nobrowse']);
       child.on('exit', resolve);
       child.on('error', reject);
     })
-    .then((exitCode) => {
-      assert.strictEqual(exitCode, 0, 'app DMG package attached');
-
+    .then((code) => {
+      assert.strictEqual(code, 0, 'app disk image (.dmg) attached');
       const source = path.join(mountPoint, 'AppName.app');
       const destination = appDir;
-      fs.removeSync(destination);
-      return fs.copySync(source, destination);
+      return fs.copy(source, destination);
     })
     .then(() => {
       return new Promise((resolve, reject) => {
-        const child = spawn(
-          'hdiutil',
-          [ 'detach', mountPoint, '-quiet' ],
-          {
-            stdio: 'inherit',
-          }
-        );
+        const child = spawn('hdiutil', ['detach', mountPoint]);
         child.on('exit', resolve);
         child.on('error', reject);
       });
     })
-    .then((exitCode) => {
-      assert.strictEqual(exitCode, 0, 'app DMG package detached');
+    .then((code) => {
+      assert.strictEqual(code, 0, 'app disk image (.dmg) detached');
     });
+  }
+  else if (process.platform === 'linux') {
+    const source = path.join('dist', 'appname.tgz');
+    const destination = tempDir;
+    return decompress(source, destination);
   }
 })
 .then(() => {
-  let executable, args = [];
+  let executable, args = [], shell = false;
 
   switch (process.platform) {
     case 'win32':
       // TODO: invoke the launcher rather than the runtime.
       executable = path.join(appDir, 'firefox.exe');
       args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
+      shell = true;
       break;
     case 'darwin':
       executable = path.join(appDir, 'Contents', 'MacOS', 'qbrt');
@@ -117,8 +110,9 @@ new Promise((resolve, reject) => {
       break;
   }
 
-  const child = spawn(executable, args, { shell: process.platform === 'win32' ? true : false });
   return new Promise((resolve, reject) => {
+    const child = spawn(executable, args, { shell: shell });
+
     child.stdout.on('data', data => {
       const output = data.toString('utf8').trim();
       console.log(output);
@@ -131,16 +125,17 @@ new Promise((resolve, reject) => {
       reject(error);
     });
 
-    child.on('close', code => {
+    child.on('exit', code => {
       assert.strictEqual(code, 0, 'app exited with success code');
       resolve();
     });
   });
 })
-.then(() => {
-  fs.removeSync(tempDir);
-})
 .catch(error => {
+  console.error(error);
+  exitCode = 1;
+})
+.finally(() => {
   fs.removeSync(tempDir);
-  throw error;
+  process.exit(exitCode);
 });

@@ -23,6 +23,7 @@
     "extract-zip": "^1.6.0",
     "fs-extra": "^2.0.0",
     "pify": "^2.3.0",
+    "promise.prototype.finally": "^2.0.1",
     "simple-plist": "^0.2.1"
   },
   "devDependencies": {
