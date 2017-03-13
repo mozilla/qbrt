@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/dash
 
 # http://stackoverflow.com/questions/29832037/how-to-get-script-directory-in-posix-sh
 rreadlink() ( # Execute the function in a *subshell* to localize variables and the effect of `cd`.
@@ -55,11 +55,4 @@ if [ "$UNAME" = 'Darwin' ]; then
    RESOURCES_PATH='../Resources/'
 fi
 
-echo $DIR
-echo $RESOURCES_PATH
-
-pwd
-which bash
-bash --version
-
-./firefox --app ./qbrt/application.ini
+${DIR}/firefox --app ${DIR}/${RESOURCES_PATH}qbrt/application.ini
