@@ -128,6 +128,10 @@ new Promise((resolve, reject) => {
       reject(error);
     });
 
+    child.stdout.on('close', code => {
+      console.log(`on stdout.close: exit code: ${code}`);
+    });
+
     child.on('exit', code => {
       console.log(`child process exit code: ${code}`);
       assert.strictEqual(code, 0, 'app exited with success code');
