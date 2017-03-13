@@ -55,4 +55,7 @@ if [ "$UNAME" = 'Darwin' ]; then
    RESOURCES_PATH='../Resources/'
 fi
 
-${DIR}/firefox --app ${DIR}/${RESOURCES_PATH}qbrt/application.ini
+echo $DIR
+echo $RESOURCES_PATH
+
+"${DIR}/firefox" --app "${DIR}/${RESOURCES_PATH}qbrt/application.ini"
