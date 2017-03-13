@@ -58,4 +58,6 @@ fi
 echo $DIR
 echo $RESOURCES_PATH
 
+pwd
+
 ./firefox --app ./qbrt/application.ini
