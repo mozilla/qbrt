@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # http://stackoverflow.com/questions/29832037/how-to-get-script-directory-in-posix-sh
 rreadlink() ( # Execute the function in a *subshell* to localize variables and the effect of `cd`.

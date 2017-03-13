@@ -110,9 +110,9 @@ new Promise((resolve, reject) => {
       executable = path.join(appDir, 'Contents', 'MacOS', 'qbrt');
       break;
     case 'linux':
-      // executable = path.join(appDir, 'launcher.sh');
-      executable = path.join(appDir, 'firefox');
-      args = ['--app', path.join(appDir, 'qbrt/application.ini'), '--new-instance'];
+      executable = path.join(appDir, 'launcher.sh');
+      // executable = path.join(appDir, 'firefox');
+      // args = ['--app', path.join(appDir, 'qbrt/application.ini'), '--new-instance'];
       break;
   }
 
