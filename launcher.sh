@@ -58,4 +58,4 @@ fi
 echo $DIR
 echo $RESOURCES_PATH
 
-"${DIR}/firefox" --app "${DIR}/${RESOURCES_PATH}qbrt/application.ini"
+./firefox --app ./qbrt/application.ini
