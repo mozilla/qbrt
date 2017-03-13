@@ -59,5 +59,7 @@ echo $DIR
 echo $RESOURCES_PATH
 
 pwd
+which bash
+bash --version
 
 ./firefox --app ./qbrt/application.ini
