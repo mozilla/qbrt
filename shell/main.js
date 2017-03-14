@@ -17,6 +17,7 @@
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
+const { console } = Cu.import('resource://gre/modules/Console.jsm', {});
 
 const WINDOW_FEATURES = [
   'width=640',
@@ -31,5 +32,6 @@ if (Services.appinfo.OS === 'Darwin') {
   Cc['@mozilla.org/widget/macdocksupport;1'].getService(Ci.nsIMacDockSupport).activateApplication(true);
 }
 
+console.log(`source opening ${Runtime.commandLineArgs[0]}`);
 const window = Services.ww.openWindow(null, Runtime.commandLineArgs[0], '_blank', WINDOW_FEATURES, null);
 Runtime.openDevTools(window);

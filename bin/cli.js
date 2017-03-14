@@ -66,8 +66,10 @@ function run() {
   const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
 
-  const appPackageJson = require(path.join(process.cwd(), options.path, 'package.json'));
-  const mainEntryPoint = path.resolve(process.cwd(), options.path, appPackageJson.main);
+  const shellDir = path.join(__dirname, '..', 'shell');
+  const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
+  const appPackageJson = require(path.join(appDir, 'package.json'));
+  const mainEntryPoint = path.join(appDir, appPackageJson.main);
 
   let executableArgs = [
     '--app', applicationIni,
@@ -76,11 +78,16 @@ function run() {
     mainEntryPoint,
   ];
 
+  if (appDir === shellDir) {
+    executableArgs.push(options.path);
+  }
+
   // The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
   // but Windows needs the former, so we use it for all platforms.
   options.jsdebugger && executableArgs.push('-jsdebugger');
-  options['wait-for-jsdebugger'] && executableArgs.push('--wait-for-jsdebugger');
+  options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
 
+  console.log(`${EXECUTABLE} ${executableArgs.join(' ')}`);
   const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
     stdio: 'inherit',
   });
