@@ -142,31 +142,18 @@ function packageApp() {
   })
   .then(() => {
     // Copy the app to the stage directory.
-    const appSourceDir = path.resolve(options.path);
+
+    const shellDir = path.join(__dirname, '..', 'shell');
+    const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
     console.log(`appSourceDir: ${appSourceDir}`);
 
     return pify(fs.copy)(appSourceDir, appTargetDir)
-    .catch(error => {
-      // If the app failed to copy because its path is actually a URL,
-      // then copy the shell app instead and update its package manifest
-      // to include a reference to the URL.
-
-      // TODO: ensure that the error is that appSourceDir doesn't exist
-      // and that options.path is a valid URL.
-
-      const appSourceDir = path.join(__dirname, '..', 'shell');
-
-      return pify(fs.copy)(appSourceDir, appTargetDir)
-      .then(() => {
+    .then(() => {
+      if (appSourceDir === shellDir) {
         const appTargetPackageJson = require(path.join(appTargetDir, 'package.json'));
-        // TODO: stop writing the URL to the 'main' field of the package
-        // manifest and make the app itself (instead of qbrt's command-line
-        // handler) responsible for determining the URL by reading its own
-        // manifest.
-        appTargetPackageJson.main = options.path;
         appTargetPackageJson.mainURL = options.path;
         return pify(fs.writeFile)(appTargetPackageJson, JSON.stringify(appTargetPackageJson));
-      });
+      }
     });
   })
   .then(() => {
