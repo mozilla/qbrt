@@ -30,7 +30,7 @@ childProcess.stdout.on('data', data => {
 });
 
 childProcess.stderr.on('data', data => {
-  console.error(data.toString('utf8'));
+  console.error(data.toString('utf8').trim());
 });
 
 childProcess.on('close', code => {
