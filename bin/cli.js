@@ -19,15 +19,13 @@
 // Polyfill Promise.prototype.finally().
 require('promise.prototype.finally').shim();
 
-// Require *pify* out of order so we can use it to promisify other modules.
-const pify = require('pify');
-
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
-const fs = pify(require('fs-extra'));
+const fs = require('fs-extra');
 const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
+const pify = require('pify');
 const ChildProcess = require('child_process');
 const spawn = require('child_process').spawn;
 
@@ -104,7 +102,7 @@ function packageApp() {
 
   let targetDir, webAppTargetDir;
 
-  fs.mkdtemp(path.join(os.tmpdir(), `${packageJson.name}-`))
+  pify(fs.mkdtemp)(path.join(os.tmpdir(), `${packageJson.name}-`))
   .then(tempDir => {
     targetDir = path.join(tempDir, targetDirName);
     webAppTargetDir = process.platform === 'darwin' ?
@@ -113,7 +111,7 @@ function packageApp() {
     console.log(`target dir: ${targetDir}`);
   })
   .then(() => {
-    return fs.copy(runtimeDir, targetDir);
+    return pify(fs.copy)(runtimeDir, targetDir);
   })
   .then(() => {
     const appSourcePath = path.resolve(options.path);
@@ -121,17 +119,17 @@ function packageApp() {
     const webAppSourceDir = path.dirname(appSourcePath);
     console.log(`webAppSourceDir: ${webAppSourceDir}`);
 
-    return fs.copy(webAppSourceDir, webAppTargetDir)
+    return pify(fs.copy)(webAppSourceDir, webAppTargetDir)
     .then(path.basename(appSourcePath))
     .catch(error => {
       // TODO: ensure that the error is that webAppSourceDir doesn't exist.
       const webAppSourceDir = path.join(__dirname, '..', 'shell');
-      return fs.copy(webAppSourceDir, webAppTargetDir)
+      return pify(fs.copy)(webAppSourceDir, webAppTargetDir)
       .then(options.path);
     })
     .then(main => {
       const appPackageJson = path.join(webAppTargetDir, 'package.json');
-      return fs.writeFile(appPackageJson, JSON.stringify({ main: main }));
+      return pify(fs.writeFile)(appPackageJson, JSON.stringify({ main: main }));
     });
   })
   .then(() => {
@@ -140,7 +138,7 @@ function packageApp() {
       console.log(dmgFile);
       // TODO: notify user friendlily that DMG file is being created:
       // "Copying app to ${dmgFile}…"
-      return fs.remove(dmgFile)
+      return pify(fs.remove)(dmgFile)
       .then(() => {
         return new Promise((resolve, reject) => {
           const child = spawn('hdiutil', ['create', '-srcfolder', targetDir, dmgFile]);
