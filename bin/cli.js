@@ -16,13 +16,20 @@
 
 'use strict';
 
+// Polyfill Promise.prototype.finally().
+require('promise.prototype.finally').shim();
+
+// Require *pify* out of order so we can use it to promisify other modules.
+const pify = require('pify');
+
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
-const fs = require('fs-extra');
+const fs = pify(require('fs-extra'));
 const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const ChildProcess = require('child_process');
+const spawn = require('child_process').spawn;
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
 
@@ -92,83 +99,88 @@ function packageApp() {
                      path.join(DIST_DIR, 'Runtime.app') :
                      path.join(DIST_DIR, 'runtime');
 
-  // const appDir = path.resolve();
-
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
   // TODO: replace all occurrences of 'appname' with actual name of app.
   const targetDirName = process.platform === 'darwin' ? 'AppName.app' : 'appname';
-  const targetDir = path.join(tempDir, targetDirName);
-  console.log(targetDir);
 
-  // Copy runtime to target directory.
-  fs.copySync(runtimeDir, targetDir);
+  let tempDir, targetDir, appSourcePath, webAppTargetDir;
 
-  // Copy webapp to target directory.
-  const appSourcePath = path.resolve(options.path);
-  if (fs.existsSync(appSourcePath)) {
-    console.log(path.dirname(appSourcePath));
+  fs.mkdtemp(path.join(os.tmpdir(), `${packageJson.name}-`))
+  .then(result => {
+    tempDir = result;
+    targetDir = path.join(tempDir, targetDirName);
+    webAppTargetDir = process.platform === 'darwin' ?
+                      path.join(targetDir, 'Contents', 'Resources', 'webapp') :
+                      path.join(targetDir, 'webapp');
+    console.log(`target dir: ${targetDir}`);
+  })
+  .then(() => {
+    return fs.copy(runtimeDir, targetDir);
+  })
+  .then(() => {
+    appSourcePath = path.resolve(options.path);
+    console.log(`appSourcePath: ${appSourcePath}`);
     const webAppSourceDir = path.dirname(appSourcePath);
-    const webAppTargetDir = process.platform === 'darwin' ?
-                            path.join(targetDir, 'Contents', 'Resources', 'webapp') :
-                            path.join(targetDir, 'webapp');
-    fs.copySync(webAppSourceDir, webAppTargetDir);
 
+    return fs.copy(webAppSourceDir, webAppTargetDir)
+    .then(path.basename(appSourcePath))
+    .catch(error => {
+      // TODO: ensure that the error is that webAppSourceDir doesn't exist.
+      const webAppSourceDir = path.join(__dirname, '..', 'shell');
+      return fs.copy(webAppSourceDir, webAppTargetDir).then(options.path);
+    });
+  })
+  .then(main => {
     const appPackageJson = path.join(webAppTargetDir, 'package.json');
-    fs.writeFileSync(appPackageJson, JSON.stringify({ main: path.basename(appSourcePath) }));
-  }
-  else {
-    const webAppSourceDir = path.join(__dirname, '..', 'shell');
-    const webAppTargetDir = process.platform === 'darwin' ?
-                            path.join(targetDir, 'Contents', 'Resources', 'webapp') :
-                            path.join(targetDir, 'webapp');
-    fs.copySync(webAppSourceDir, webAppTargetDir);
-
-    const appPackageJson = path.join(webAppTargetDir, 'package.json');
-    fs.writeFileSync(appPackageJson, JSON.stringify({ main: options.path }));
-  }
-
-  // Package target directory.
-  if (process.platform === 'darwin') {
-    const dmgFile = path.join(DIST_DIR, 'AppName.dmg');
-    // TODO: notify user friendlily that DMG file is being created:
-    // "Copying app to ${dmgFile}…"
-    fs.removeSync(dmgFile);
-    const result = ChildProcess.spawnSync('hdiutil', ['create', '-srcfolder', targetDir, dmgFile]);
-    if (result.status !== 0) {
-      throw new Error(result.stderr.toString());
+    return fs.writeFile(appPackageJson, JSON.stringify({ main: main }));
+  })
+  .then(() => {
+    if (process.platform === 'darwin') {
+      const dmgFile = path.join(DIST_DIR, 'AppName.dmg');
+      console.log(dmgFile);
+      // TODO: notify user friendlily that DMG file is being created:
+      // "Copying app to ${dmgFile}…"
+      return fs.remove(dmgFile)
+      .then(() => {
+        return new Promise((resolve, reject) => {
+          const child = spawn('hdiutil', ['create', '-srcfolder', targetDir, dmgFile]);
+          child.on('exit', resolve);
+          // TODO: handle errors returned by hdiutil.
+        });
+      });
     }
-    console.log(dmgFile);
-  }
-  else if (process.platform === 'linux') {
-    const archiver = require('archiver');
-    new Promise((resolve, reject) => {
-      const tarFile = fs.createWriteStream(path.join(DIST_DIR, 'appname.tgz'));
-      const archive = archiver('tar', { gzip: true });
-      tarFile.on('close', resolve);
-      archive.on('error', reject);
-      archive.pipe(tarFile);
-      archive.directory(targetDir, path.basename(targetDir));
-      archive.finalize();
-    })
-    .then(() => {
-      console.log('Archived app.');
-    });
-  }
-  else if (process.platform === 'win32') {
-    const archiver = require('archiver');
-    new Promise((resolve, reject) => {
-      const zipFile = fs.createWriteStream(path.join(DIST_DIR, 'appname.zip'));
-      const archive = archiver('zip');
-      zipFile.on('close', resolve);
-      archive.on('error', reject);
-      archive.pipe(zipFile);
-      archive.directory(targetDir, path.basename(targetDir));
-      archive.finalize();
-    })
-    .then(() => {
-      console.log('Archived app.');
-    });
-  }
+    else if (process.platform === 'linux') {
+      const archiver = require('archiver');
+      return new Promise((resolve, reject) => {
+        const tarFile = fs.createWriteStream(path.join(DIST_DIR, 'appname.tgz'));
+        const archive = archiver('tar', { gzip: true });
+        tarFile.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(tarFile);
+        archive.directory(targetDir, path.basename(targetDir));
+        archive.finalize();
+      });
+    }
+    else if (process.platform === 'win32') {
+      const archiver = require('archiver');
+      return new Promise((resolve, reject) => {
+        const zipFile = fs.createWriteStream(path.join(DIST_DIR, 'appname.zip'));
+        const archive = archiver('zip');
+        zipFile.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(zipFile);
+        archive.directory(targetDir, path.basename(targetDir));
+        archive.finalize();
+      });
+    }
+  })
+  .then(() => {
+    console.log('Archived app.');
+  })
+  .catch((error) => {
+    console.error(error);
+  })
+  .finally(() => {
+  });
 
-  // Delete temp directory.
+  // TODO: delete temp directory.
 }
