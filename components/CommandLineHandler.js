@@ -14,8 +14,6 @@
 
 'use strict';
 
-dump('source CommandLineHandler\n');
-
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 
 const { NetUtil } = Cu.import('resource://gre/modules/NetUtil.jsm', {});
@@ -110,25 +108,10 @@ CommandLineHandler.prototype = {
 
     let commandLineArg = commandLineArgs[0];
     if (commandLineArg) {
-      try {
-        appURI = Services.io.newURI(commandLineArg, null, null);
-      }
-      catch (ex) {}
-
-dump(`appURI: ${appURI}\n`);
-
-      if (appURI) {
-        // If the app argument is a URI, run it in the shell.
-        appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
-        appPath.append('shell');
-        appPath.append('main.js');
-      }
-      else {
-        appPath = cmdLine.resolveFile(commandLineArg);
-        if (!appPath.exists()) {
-          dump(`error: nonexistent app path: ${appPath.path}\n`);
-          return;
-        }
+      appPath = cmdLine.resolveFile(commandLineArg);
+      if (!appPath.exists()) {
+        dump(`error: nonexistent app path: ${appPath.path}\n`);
+        return;
       }
     }
     else {
@@ -158,8 +141,6 @@ dump(`appURI: ${appURI}\n`);
         appPath = mainFile;
       }
     }
-
-    dump(`source appPath: ${appPath.path}\n`);
 
     try {
       Runtime.start(appPath, commandLineArgs);

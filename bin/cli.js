@@ -87,7 +87,6 @@ function run() {
   options.jsdebugger && executableArgs.push('-jsdebugger');
   options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
 
-  console.log(`${EXECUTABLE} ${executableArgs.join(' ')}`);
   const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
     stdio: 'inherit',
   });
