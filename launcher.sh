@@ -1,10 +1,7 @@
 #!/bin/sh
 
-set -e
-
 # http://stackoverflow.com/questions/29832037/how-to-get-script-directory-in-posix-sh
 rreadlink() ( # Execute the function in a *subshell* to localize variables and the effect of `cd`.
-
   target=$1 fname= targetDir= CDPATH=
 
   # Try to make the execution environment as predictable as possible:
@@ -57,4 +54,4 @@ if [ "$UNAME" = 'Darwin' ]; then
    RESOURCES_PATH='../Resources/'
 fi
 
-exec ${DIR}/firefox --app ${DIR}/${RESOURCES_PATH}qbrt/application.ini "$@"
+exec "${DIR}/firefox" --app "${DIR}/${RESOURCES_PATH}/qbrt/application.ini" "$@"
