@@ -75,7 +75,7 @@ function run() {
     '--app', applicationIni,
     '--profile', profileDir,
     '--new-instance',
-    '--aqq', mainEntryPoint,
+    '-aqq', mainEntryPoint,
   ];
 
   if (appDir === shellDir) {
