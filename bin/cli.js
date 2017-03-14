@@ -71,10 +71,19 @@ function run() {
   const appPackageJson = require(path.join(appDir, 'package.json'));
   const mainEntryPoint = path.join(appDir, appPackageJson.main);
 
+  // Args like 'app', 'new-instance', and 'profile' are handled by nsAppRunner,
+  // which supports uni-dash (-foo), duo-dash (--foo), and slash (/foo) variants
+  // (the latter only on Windows).
+  //
+  // But args like 'aqq' and 'jsdebugger' are handled by nsCommandLine methods,
+  // which don't support duo-dash arguments on Windows. So, for maximal
+  // compatibility (and minimal complexity, modulo this over-long explanation),
+  // we always pass uni-dash args to the runtime.
+
   let executableArgs = [
-    '--app', applicationIni,
-    '--profile', profileDir,
-    '--new-instance',
+    '-app', applicationIni,
+    '-profile', profileDir,
+    '-new-instance',
     '-aqq', mainEntryPoint,
   ];
 
@@ -82,8 +91,6 @@ function run() {
     executableArgs.push(options.path);
   }
 
-  // The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
-  // but Windows needs the former, so we use it for all platforms.
   options.jsdebugger && executableArgs.push('-jsdebugger');
   options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
 
