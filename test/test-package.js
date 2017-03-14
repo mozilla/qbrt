@@ -31,12 +31,12 @@ const path = require('path');
 const spawn = require('child_process').spawn;
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
-const appDir = path.join(tempDir, process.platform === 'darwin' ? 'AppName.app' : 'appname');
+const appDir = path.join(tempDir, process.platform === 'darwin' ? 'hello-world.app' : 'hello-world');
 
 let exitCode = 0;
 
 new Promise((resolve, reject) => {
-  const child = spawn('node', [ path.join('bin', 'cli.js'), 'package', 'test/hello-world.js' ]);
+  const child = spawn('node', [ path.join('bin', 'cli.js'), 'package', 'test/hello-world/' ]);
 
   child.stdout.on('data', data => {
     const output = data.toString('utf8');
@@ -59,21 +59,21 @@ new Promise((resolve, reject) => {
   console.log('extracting package');
 
   if (process.platform === 'win32') {
-    const source = path.join('dist', 'appname.zip');
+    const source = path.join('dist', 'hello-world.zip');
     const destination = tempDir;
     return decompress(source, destination);
   }
   else if (process.platform === 'darwin') {
     const mountPoint = path.join(tempDir, 'volume');
     return new Promise((resolve, reject) => {
-      const dmgFile = path.join('dist', 'AppName.dmg');
+      const dmgFile = path.join('dist', 'hello-world.dmg');
       const child = spawn('hdiutil', ['attach', dmgFile, '-mountpoint', mountPoint, '-nobrowse']);
       child.on('exit', resolve);
       child.on('error', reject);
     })
     .then((code) => {
       assert.strictEqual(code, 0, 'app disk image (.dmg) attached');
-      const source = path.join(mountPoint, 'AppName.app');
+      const source = path.join(mountPoint, 'hello-world.app');
       const destination = appDir;
       return fs.copy(source, destination);
     })
@@ -89,7 +89,7 @@ new Promise((resolve, reject) => {
     });
   }
   else if (process.platform === 'linux') {
-    const source = path.join('dist', 'appname.tgz');
+    const source = path.join('dist', 'hello-world.tgz');
     const destination = tempDir;
     return decompress(source, destination);
   }
@@ -107,10 +107,10 @@ new Promise((resolve, reject) => {
       shell = true;
       break;
     case 'darwin':
-      executable = path.join(appDir, 'Contents', 'MacOS', 'launcher.sh');
+      executable = path.join(appDir, 'Contents', 'MacOS', 'hello-world');
       break;
     case 'linux':
-      executable = path.join(appDir, 'launcher.sh');
+      executable = path.join(appDir, 'hello-world');
       break;
   }
 

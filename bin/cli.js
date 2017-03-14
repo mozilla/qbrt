@@ -66,11 +66,14 @@ function run() {
   const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
 
+  const appPackageJson = require(path.join(process.cwd(), options.path, 'package.json'));
+  const mainEntryPoint = path.resolve(process.cwd(), options.path, appPackageJson.main);
+
   let executableArgs = [
     '--app', applicationIni,
     '--profile', profileDir,
     '--new-instance',
-    options.path,
+    mainEntryPoint,
   ];
 
   // The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
@@ -92,56 +95,84 @@ function packageApp() {
     { name: 'path', type: String, defaultOption: true },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
+  const runtimeDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+  const appPackageJson = require(path.join(process.cwd(), options.path, 'package.json'));
+  // TODO: ensure appPackageJson.name can be used as directory/file name.
+  const appName = appPackageJson.name;
+  const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
 
-  const runtimeDir = process.platform === 'darwin' ?
-                     path.join(DIST_DIR, 'Runtime.app') :
-                     path.join(DIST_DIR, 'runtime');
-
-  // TODO: replace all occurrences of 'appname' with actual name of app.
-  const targetDirName = process.platform === 'darwin' ? 'AppName.app' : 'appname';
-
-  let targetDir, webAppTargetDir;
+  let stageDir, appTargetDir;
 
   pify(fs.mkdtemp)(path.join(os.tmpdir(), `${packageJson.name}-`))
   .then(tempDir => {
-    targetDir = path.join(tempDir, targetDirName);
-    webAppTargetDir = process.platform === 'darwin' ?
-                      path.join(targetDir, 'Contents', 'Resources', 'webapp') :
-                      path.join(targetDir, 'webapp');
-    console.log(`target dir: ${targetDir}`);
+    stageDir = path.join(tempDir, stageDirName);
+    appTargetDir = process.platform === 'darwin' ?
+      path.join(stageDir, 'Contents', 'Resources', 'webapp') :
+      path.join(stageDir, 'webapp');
+    console.log(`target dir: ${stageDir}`);
   })
   .then(() => {
-    return pify(fs.copy)(runtimeDir, targetDir);
+    // Copy the runtime to the staging dir.
+    return pify(fs.copy)(runtimeDir, stageDir);
   })
   .then(() => {
-    const appSourcePath = path.resolve(options.path);
-    console.log(`appSourcePath: ${appSourcePath}`);
-    const webAppSourceDir = path.dirname(appSourcePath);
-    console.log(`webAppSourceDir: ${webAppSourceDir}`);
+    // Rename launcher script to the app's name.
+    const exeDir = process.platform === 'darwin' ? path.join(stageDir, 'Contents', 'MacOS') : stageDir;
+    const source = path.join(exeDir, process.platform === 'win32' ? 'launcher.bat' : 'launcher.sh');
+    const target = path.join(exeDir, process.platform === 'win32' ? `${appName}.bat` : appName);
+    return pify(fs.move)(source, target);
+  })
+  .then(() => {
+    // Update the Info.plist file with the new name of the launcher script.
+    if (process.platform === 'darwin') {
+      const plist = require('simple-plist');
+      const plistFile = path.join(stageDir, 'Contents', 'Info.plist');
+      return pify(plist.readFile)(plistFile)
+      .then(appPlist => {
+        appPlist.CFBundleExecutable = appName;
+        return pify(plist.writeFile)(plistFile, appPlist);
+      });
+    }
+  })
+  .then(() => {
+    // Copy the app to the stage directory.
+    const appSourceDir = path.resolve(options.path);
+    console.log(`appSourceDir: ${appSourceDir}`);
 
-    return pify(fs.copy)(webAppSourceDir, webAppTargetDir)
-    .then(path.basename(appSourcePath))
+    return pify(fs.copy)(appSourceDir, appTargetDir)
     .catch(error => {
-      // TODO: ensure that the error is that webAppSourceDir doesn't exist.
-      const webAppSourceDir = path.join(__dirname, '..', 'shell');
-      return pify(fs.copy)(webAppSourceDir, webAppTargetDir)
-      .then(options.path);
-    })
-    .then(main => {
-      const appPackageJson = path.join(webAppTargetDir, 'package.json');
-      return pify(fs.writeFile)(appPackageJson, JSON.stringify({ main: main }));
+      // If the app failed to copy because its path is actually a URL,
+      // then copy the shell app instead and update its package manifest
+      // to include a reference to the URL.
+
+      // TODO: ensure that the error is that appSourceDir doesn't exist
+      // and that options.path is a valid URL.
+
+      const appSourceDir = path.join(__dirname, '..', 'shell');
+
+      return pify(fs.copy)(appSourceDir, appTargetDir)
+      .then(() => {
+        const appTargetPackageJson = require(path.join(appTargetDir, 'package.json'));
+        // TODO: stop writing the URL to the 'main' field of the package
+        // manifest and make the app itself (instead of qbrt's command-line
+        // handler) responsible for determining the URL by reading its own
+        // manifest.
+        appTargetPackageJson.main = options.path;
+        appTargetPackageJson.mainURL = options.path;
+        return pify(fs.writeFile)(appTargetPackageJson, JSON.stringify(appTargetPackageJson));
+      });
     });
   })
   .then(() => {
     if (process.platform === 'darwin') {
-      const dmgFile = path.join(DIST_DIR, 'AppName.dmg');
+      const dmgFile = path.join(DIST_DIR, `${appName}.dmg`);
       console.log(dmgFile);
       // TODO: notify user friendlily that DMG file is being created:
       // "Copying app to ${dmgFile}…"
       return pify(fs.remove)(dmgFile)
       .then(() => {
         return new Promise((resolve, reject) => {
-          const child = spawn('hdiutil', ['create', '-srcfolder', targetDir, dmgFile]);
+          const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, dmgFile]);
           child.on('exit', resolve);
           // TODO: handle errors returned by hdiutil.
         });
@@ -150,24 +181,24 @@ function packageApp() {
     else if (process.platform === 'linux') {
       const archiver = require('archiver');
       return new Promise((resolve, reject) => {
-        const tarFile = fs.createWriteStream(path.join(DIST_DIR, 'appname.tgz'));
+        const tarFile = fs.createWriteStream(path.join(DIST_DIR, `${appName}.tgz`));
         const archive = archiver('tar', { gzip: true });
         tarFile.on('close', resolve);
         archive.on('error', reject);
         archive.pipe(tarFile);
-        archive.directory(targetDir, path.basename(targetDir));
+        archive.directory(stageDir, path.basename(stageDir));
         archive.finalize();
       });
     }
     else if (process.platform === 'win32') {
       const archiver = require('archiver');
       return new Promise((resolve, reject) => {
-        const zipFile = fs.createWriteStream(path.join(DIST_DIR, 'appname.zip'));
+        const zipFile = fs.createWriteStream(path.join(DIST_DIR, `${appName}.zip`));
         const archive = archiver('zip');
         zipFile.on('close', resolve);
         archive.on('error', reject);
         archive.pipe(zipFile);
-        archive.directory(targetDir, path.basename(targetDir));
+        archive.directory(stageDir, path.basename(stageDir));
         archive.finalize();
       });
     }
