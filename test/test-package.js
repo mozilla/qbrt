@@ -111,27 +111,24 @@ new Promise((resolve, reject) => {
       break;
     case 'linux':
       executable = path.join(appDir, 'launcher.sh');
-      // executable = path.join(appDir, 'firefox');
-      // args = ['--app', path.join(appDir, 'qbrt/application.ini'), '--new-instance'];
       break;
   }
 
   return new Promise((resolve, reject) => {
-    const child = spawn(executable, args, { shell: shell, stdio: 'inherit' });
+    const child = spawn(executable, args, { shell: shell });
 
-    // child.stdout.on('data', data => {
-    //   const output = data.toString('utf8').trim();
-    //   console.log(output);
-    //   assert.strictEqual(output, 'console.log: Hello, World!');
-    // });
+    child.stdout.on('data', data => {
+      const output = data.toString('utf8').trim();
+      console.log(output);
+      assert.strictEqual(output, 'console.log: Hello, World!');
+    });
 
-    // child.stderr.on('data', data => {
-    //   const error = data.toString('utf8').trim();
-    //   reject(error);
-    // });
+    child.stderr.on('data', data => {
+      const error = data.toString('utf8').trim();
+      reject(error);
+    });
 
     child.on('exit', (code, signal) => {
-      console.log(`child process exit code/signal: ${code}/${signal}`);
       assert.strictEqual(code, 0, 'app exited with success code');
       resolve();
     });
