@@ -107,7 +107,7 @@ new Promise((resolve, reject) => {
       shell = true;
       break;
     case 'darwin':
-      executable = path.join(appDir, 'Contents', 'MacOS', 'qbrt');
+      executable = path.join(appDir, 'Contents', 'MacOS', 'launcher.sh');
       break;
     case 'linux':
       executable = path.join(appDir, 'launcher.sh');
@@ -125,7 +125,9 @@ new Promise((resolve, reject) => {
 
     child.stderr.on('data', data => {
       const error = data.toString('utf8').trim();
-      reject(error);
+      // Ignore error messages that Linux on Travis loves to report, such as:
+      // GLib-GObject-CRITICAL **: g_object_unref: assertion 'object->ref_count > 0' failed
+      // reject(error);
     });
 
     child.on('exit', (code, signal) => {
