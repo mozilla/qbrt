@@ -32,6 +32,6 @@ if (Services.appinfo.OS === 'Darwin') {
   Cc['@mozilla.org/widget/macdocksupport;1'].getService(Ci.nsIMacDockSupport).activateApplication(true);
 }
 
-console.log(`source opening ${Runtime.commandLineArgs[0]}`);
+console.log(`opening ${Runtime.commandLineArgs[0]} in new window`);
 const window = Services.ww.openWindow(null, Runtime.commandLineArgs[0], '_blank', WINDOW_FEATURES, null);
 Runtime.openDevTools(window);
