@@ -102,11 +102,10 @@ function packageApp() {
   // TODO: replace all occurrences of 'appname' with actual name of app.
   const targetDirName = process.platform === 'darwin' ? 'AppName.app' : 'appname';
 
-  let tempDir, targetDir, appSourcePath, webAppTargetDir;
+  let targetDir, webAppTargetDir;
 
   fs.mkdtemp(path.join(os.tmpdir(), `${packageJson.name}-`))
-  .then(result => {
-    tempDir = result;
+  .then(tempDir => {
     targetDir = path.join(tempDir, targetDirName);
     webAppTargetDir = process.platform === 'darwin' ?
                       path.join(targetDir, 'Contents', 'Resources', 'webapp') :
@@ -117,21 +116,23 @@ function packageApp() {
     return fs.copy(runtimeDir, targetDir);
   })
   .then(() => {
-    appSourcePath = path.resolve(options.path);
+    const appSourcePath = path.resolve(options.path);
     console.log(`appSourcePath: ${appSourcePath}`);
     const webAppSourceDir = path.dirname(appSourcePath);
+    console.log(`webAppSourceDir: ${webAppSourceDir}`);
 
     return fs.copy(webAppSourceDir, webAppTargetDir)
     .then(path.basename(appSourcePath))
     .catch(error => {
       // TODO: ensure that the error is that webAppSourceDir doesn't exist.
       const webAppSourceDir = path.join(__dirname, '..', 'shell');
-      return fs.copy(webAppSourceDir, webAppTargetDir).then(options.path);
+      return fs.copy(webAppSourceDir, webAppTargetDir)
+      .then(options.path);
+    })
+    .then(main => {
+      const appPackageJson = path.join(webAppTargetDir, 'package.json');
+      return fs.writeFile(appPackageJson, JSON.stringify({ main: main }));
     });
-  })
-  .then(main => {
-    const appPackageJson = path.join(webAppTargetDir, 'package.json');
-    return fs.writeFile(appPackageJson, JSON.stringify({ main: main }));
   })
   .then(() => {
     if (process.platform === 'darwin') {
@@ -180,7 +181,6 @@ function packageApp() {
     console.error(error);
   })
   .finally(() => {
+    // TODO: delete temp directory.
   });
-
-  // TODO: delete temp directory.
 }

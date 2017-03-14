@@ -266,7 +266,7 @@ new Promise((resolve, reject) => {
       // Configure the bundle to run the stub executable.
       const plistFile = path.join(installDir, 'Contents', 'Info.plist');
       const appPlist = plist.readFileSync(plistFile);
-      appPlist.CFBundleExecutable = 'qbrt';
+      appPlist.CFBundleExecutable = 'launcher.sh';
       plist.writeFileSync(plistFile, appPlist);
 
       break;
