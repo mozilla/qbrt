@@ -103,7 +103,6 @@ CommandLineHandler.prototype = {
       }
     }
 
-    let appURI;
     let appPath;
 
     let commandLineArg = commandLineArgs[0];
@@ -121,25 +120,11 @@ CommandLineHandler.prototype = {
       packageJsonFile.append('package.json');
       let data = JSON.parse(readFile(packageJsonFile));
 
-      try {
-        appURI = Services.io.newURI(data.main, null, null);
-      }
-      catch (ex) {}
-
-      if (appURI) {
-        // If the app argument is a URI, run it in the shell.
-        appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
-        appPath.append('shell');
-        appPath.append('main.js');
-        commandLineArgs.push(data.main);
-      }
-      else {
-        // This will break if data.main is a path rather than just a filename.
-        // TODO: resolve path properly.
-        let mainFile = webappDir.clone();
-        mainFile.append(data.main);
-        appPath = mainFile;
-      }
+      // This will break if data.main is a path rather than just a filename.
+      // TODO: resolve path properly.
+      let mainFile = webappDir.clone();
+      mainFile.append(data.main);
+      appPath = mainFile;
     }
 
     try {
