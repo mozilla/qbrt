@@ -124,10 +124,9 @@ new Promise((resolve, reject) => {
     });
 
     child.stderr.on('data', data => {
-      // Ignore error messages that Linux on Travis loves to report, such as:
+      // Report error messages that Linux on Travis loves to excrete, such as:
       // GLib-GObject-CRITICAL **: g_object_unref: assertion 'object->ref_count > 0' failed
-      // const error = data.toString('utf8').trim();
-      // reject(error);
+      console.error(data.toString('utf8').trim());
     });
 
     child.on('exit', (code, signal) => {
