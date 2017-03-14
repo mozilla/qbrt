@@ -117,10 +117,11 @@ new Promise((resolve, reject) => {
   return new Promise((resolve, reject) => {
     const child = spawn(executable, args, { shell: shell });
 
+    let totalOutput = '';
     child.stdout.on('data', data => {
-      const output = data.toString('utf8').trim();
-      console.log(output);
-      assert.strictEqual(output, 'console.log: Hello, World!');
+      const output = data.toString('utf8');
+      totalOutput += output;
+      console.log(output.trim());
     });
 
     child.stderr.on('data', data => {
@@ -131,6 +132,7 @@ new Promise((resolve, reject) => {
 
     child.on('exit', (code, signal) => {
       assert.strictEqual(code, 0, 'app exited with success code');
+      assert.strictEqual(totalOutput.trim(), 'console.log: Hello, World!');
       resolve();
     });
   });
