@@ -1,3 +1,4 @@
 {
-  "name": "qbrt"
+  "name": "qbrt",
+  "main": "main.js"
 }

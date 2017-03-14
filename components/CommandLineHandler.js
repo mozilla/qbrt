@@ -87,6 +87,8 @@ CommandLineHandler.prototype = {
       }
     }
 
+    const aqqArg = cmdLine.handleFlagWithParam('aqq', false);
+
     // Slurp arguments into an array we can pass to the app.
     let commandLineArgs = [];
     for (let i = 0; true; i++) {
@@ -103,13 +105,12 @@ CommandLineHandler.prototype = {
       }
     }
 
-    let appPath;
+    let aqqPath;
 
-    let commandLineArg = commandLineArgs[0];
-    if (commandLineArg) {
-      appPath = cmdLine.resolveFile(commandLineArg);
-      if (!appPath.exists()) {
-        dump(`error: nonexistent app path: ${appPath.path}\n`);
+    if (aqqArg) {
+      aqqPath = cmdLine.resolveFile(aqqArg);
+      if (!aqqPath.exists()) {
+        dump(`error: nonexistent path: ${aqqPath.path}\n`);
         return;
       }
     }
@@ -124,14 +125,14 @@ CommandLineHandler.prototype = {
       // TODO: resolve path properly.
       let mainFile = webappDir.clone();
       mainFile.append(data.main);
-      appPath = mainFile;
+      aqqPath = mainFile;
     }
 
     try {
-      Runtime.start(appPath, commandLineArgs);
+      Runtime.start(aqqPath, commandLineArgs);
     }
     catch (ex) {
-      dump(`error starting app: ${ex}\n`);
+      dump(`error starting runtime: ${ex}\n`);
       Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
     }
   },
