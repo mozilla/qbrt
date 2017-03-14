@@ -46,12 +46,12 @@ rreadlink() ( # Execute the function in a *subshell* to localize variables and t
   fi
 )
 
-DIR=$(dirname -- "$(rreadlink "$0")")
-RESOURCES_PATH=''
-UNAME=$(uname)
+MOZ_APP_NAME=firefox
+MOZ_LIBDIR=$(dirname -- "$(rreadlink "$0")")
+MOZ_RESOURCES_DIR=''
 
-if [ "$UNAME" = 'Darwin' ]; then
-   RESOURCES_PATH='../Resources/'
+if [ "$(uname)" = 'Darwin' ]; then
+   MOZ_RESOURCES_DIR='../Resources/'
 fi
 
-exec "${DIR}/firefox" --app "${DIR}/${RESOURCES_PATH}/qbrt/application.ini" "$@"
+exec "${MOZ_LIBDIR}/${MOZ_APP_NAME}" --app "${MOZ_LIBDIR}/${MOZ_RESOURCES_DIR}qbrt/application.ini" "$@"
