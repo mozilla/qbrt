@@ -111,10 +111,12 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = filePath;
     const destination = DIST_DIR;
-    fs.removeSync(path.join(destination, 'runtime'));
-    return decompress(source, destination)
+    return pify(fs.remove)(path.join(destination, 'runtime'))
     .then(() => {
-      fs.renameSync(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
+      return decompress(source, destination);
+    })
+    .then(() => {
+      return pify(fs.rename)(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
     });
   }
   else if (process.platform === 'darwin') {
