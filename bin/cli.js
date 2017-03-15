@@ -30,7 +30,8 @@ const path = require('path');
 const pify = require('pify');
 const spawn = require('child_process').spawn;
 
-const DIST_DIR = path.join(__dirname, '..', 'dist');
+const distDir = path.join(__dirname, '..', 'dist');
+const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 
 const validCommands = [ null, 'package', 'run' ];
 const { command, argv } = commandLineCommands(validCommands);
@@ -52,17 +53,10 @@ function run() {
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
 
-  // TODO: refactor EXECUTABLE_DIR and EXECUTABLE using latest best practices.
+  // TODO: refactor executableDir and executable using latest best practices.
 
-  const EXECUTABLE_DIR = process.platform === 'darwin' ?
-                         path.join(DIST_DIR, 'Runtime.app', 'Contents', 'MacOS') :
-                         path.join(DIST_DIR, 'runtime');
-
-  const EXECUTABLE = process.platform === 'win32' ?
-                     path.join(EXECUTABLE_DIR, 'firefox.exe') :
-                     path.join(EXECUTABLE_DIR, 'firefox');
-
-  const installDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+  const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
+  const executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
   const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
   const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
@@ -80,10 +74,13 @@ function run() {
   // which don't support duo-dash arguments on Windows. So, for maximal
   // compatibility (and minimal complexity, modulo this over-long explanation),
   // we always pass uni-dash args to the runtime.
+  //
+  // Per nsBrowserApp, the 'app' flag always needs to be the first in the list.
 
   let executableArgs = [
     '-app', applicationIni,
     '-profile', profileDir,
+    // TODO: figure out why we need 'new-instance' for it to work.
     '-new-instance',
     '-aqq', mainEntryPoint,
   ];
@@ -95,12 +92,14 @@ function run() {
   options.jsdebugger && executableArgs.push('-jsdebugger');
   options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
 
-  const child = spawn(EXECUTABLE, executableArgs, { stdio: 'inherit' });
+  const child = spawn(executable, executableArgs, { stdio: 'inherit' });
   child.on('close', code => {
     fs.removeSync(profileDir);
     process.exit(code);
   });
   process.on('SIGINT', () => {
+    // If we get a SIGINT, then kill our child process.  Tests send us
+    // this signal, as might the user from a terminal window invocation.
     child.kill('SIGINT');
   });
 }
@@ -110,7 +109,6 @@ function packageApp() {
     { name: 'path', type: String, defaultOption: true },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
-  const runtimeDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
   const shellDir = path.join(__dirname, '..', 'shell');
   const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
   const appPackageJson = require(path.join(appSourceDir, 'package.json'));
@@ -133,7 +131,7 @@ function packageApp() {
   })
   .then(() => {
     // Copy the runtime to the staging dir.
-    return pify(fs.copy)(runtimeDir, stageDir);
+    return pify(fs.copy)(installDir, stageDir);
   })
   .then(() => {
     // Rename launcher script to the app's name.
@@ -207,6 +205,6 @@ function packageApp() {
     console.error(`  Error: ${error}`);
   })
   .finally(() => {
-    // TODO: delete temp directory.
+    return fs.remove(stageDir);
   });
 }
