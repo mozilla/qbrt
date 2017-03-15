@@ -23,7 +23,7 @@ module.exports = {
   rules: {
     'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
     'comma-dangle': ['error', 'always-multiline'],
-    'indent': [ 'error', 2 ],
+    'indent': [ 'error', 2, { SwitchCase: 1 }],
     'linebreak-style': ['error', 'unix'],
     'no-console': 'off',
     'no-constant-condition': ['error', { checkLoops: false }],

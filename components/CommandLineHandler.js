@@ -16,9 +16,21 @@
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 
-const { Runtime } = Cu.import('resource:///modules/Runtime.jsm', {});
+const { NetUtil } = Cu.import('resource://gre/modules/NetUtil.jsm', {});
+const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 const { XPCOMUtils } = Cu.import('resource://gre/modules/XPCOMUtils.jsm', {});
+
+function readFile(file) {
+  let stream = NetUtil.newChannel({
+    uri: file,
+    loadUsingSystemPrincipal: true,
+  }).open2();
+  let count = stream.available();
+  let data = NetUtil.readInputStreamToString(stream, count);
+  stream.close();
+  return data;
+}
 
 function CommandLineHandler() {}
 
@@ -34,6 +46,11 @@ CommandLineHandler.prototype = {
   helpInfo: '',
 
   handle: function(cmdLine) {
+    // Prevent the runtime's default behavior so it doesn't happen in addition
+    // to the behavior we specify.  This is disabled because the way we remove
+    // browser files means that default behavior no longer occurs.
+    // cmdLine.preventDefault = true;
+
     // Firefox, in nsBrowserContentHandler, has a more robust handler
     // for the --chrome flag, which tries to correct typos in the URL
     // being loaded.  But we only need to handle loading devtools in a separate
@@ -71,6 +88,8 @@ CommandLineHandler.prototype = {
       }
     }
 
+    const aqqArg = cmdLine.handleFlagWithParam('aqq', false);
+
     // Slurp arguments into an array we can pass to the app.
     let commandLineArgs = [];
     for (let i = 0; true; i++) {
@@ -87,33 +106,35 @@ CommandLineHandler.prototype = {
       }
     }
 
-    let appURI;
-    let appPath;
+    let aqqPath, packageJSON = {};
 
-    try {
-      appURI = Services.io.newURI(commandLineArgs[0], null, null);
-    }
-    catch (ex) {}
-
-    if (appURI) {
-      // If the app argument is a URI, run it in the shell.
-      appPath = Services.dirsvc.get('CurProcD', Ci.nsIFile);
-      appPath.append('shell');
-      appPath.append('main.js');
-    }
-    else {
-      appPath = cmdLine.resolveFile(commandLineArgs[0]);
-      if (!appPath.exists()) {
-        dump(`error: nonexistent app path: ${appPath.path}\n`);
+    if (aqqArg) {
+      aqqPath = cmdLine.resolveFile(aqqArg);
+      if (!aqqPath.exists()) {
+        dump(`error: nonexistent path: ${aqqPath.path}\n`);
         return;
       }
+      // TODO: retrieve package.json data from path.
+    }
+    else {
+      let webappDir = Services.dirsvc.get('CurProcD', Ci.nsIFile).parent;
+      webappDir.append('webapp');
+      let packageJsonFile = webappDir.clone();
+      packageJsonFile.append('package.json');
+      packageJSON = JSON.parse(readFile(packageJsonFile));
+
+      // This will break if packageJSON.main is a path rather than just a filename.
+      // TODO: resolve path properly.
+      let mainFile = webappDir.clone();
+      mainFile.append(packageJSON.main);
+      aqqPath = mainFile;
     }
 
     try {
-      Runtime.start(appPath, commandLineArgs);
+      Runtime.start(aqqPath, commandLineArgs, packageJSON);
     }
     catch (ex) {
-      dump(`error starting app: ${ex}\n`);
+      dump(`error starting runtime: ${ex}\n`);
       Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
     }
   },

@@ -1,16 +1,12 @@
 # The manifest file for the command-line handler, which starts the runtime.
 manifest components/CommandLineHandler.manifest
 
-# Devtools live in the browser app inside the Firefox bundle, so they aren't
-# available by default when we run this xulapp via firefox --app (bug 1244163).
-# We have to specify manifest instructions to make their resources available.
-#
-# And the resource location varies by OS, as they live in firefox/browser/
-# on Windows and Linux and Firefox.app/Contents/Resources/browser/ on Mac.
-#
-manifest devtools.manifest os=Linux
-manifest devtools.manifest os=WINNT
-manifest devtools-mac.manifest os=Darwin
+# Devtools live in the runtime's browser xulapp, so they aren't available
+# by default when we run our xulapp via the runtime's --app flag (bug 1244163).
+# Thus we instruct the chrome registry to make their resources available
+# via a manifest file, devtools.manifest, that we copy from our source dir
+# to the runtime dir when we install the runtime.
+manifest devtools.manifest
 
 # Disable addons.
 component {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0} components/DisabledAddonManager.js
@@ -20,4 +16,12 @@ contract @mozilla.org/addons/integration;1 {ed6e7c79-fcd3-4285-881e-f0cbb0d8ada0
 component {b0836913-f33f-4935-96af-235891cd5815} components/DisabledTelemetryStartup.js
 contract @mozilla.org/base/telemetry-startup;1 {b0836913-f33f-4935-96af-235891cd5815}
 
+# Branding files that some parts of devtools depend upon to determine
+# the name of the product into which they're embedded.
 locale branding en-US chrome/en-US/locale/branding/
+
+# An alias that enables code to reference internal files via resource URLs.
+# The alias points to the same directory that contains this manifest,
+# so URLs are relative to that directory, i.e. resource://qbrt/foo/bar.txt
+# references ./foo/bar.txt.
+resource qbrt ./

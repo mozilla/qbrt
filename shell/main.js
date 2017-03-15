@@ -15,8 +15,9 @@
 'use strict';
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
-const { Runtime } = Cu.import('resource:///modules/Runtime.jsm', {});
+const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
+const { console } = Cu.import('resource://gre/modules/Console.jsm', {});
 
 const WINDOW_FEATURES = [
   'width=640',
@@ -31,5 +32,8 @@ if (Services.appinfo.OS === 'Darwin') {
   Cc['@mozilla.org/widget/macdocksupport;1'].getService(Ci.nsIMacDockSupport).activateApplication(true);
 }
 
-const window = Services.ww.openWindow(null, Runtime.commandLineArgs[0], '_blank', WINDOW_FEATURES, null);
+const url = Runtime.commandLineArgs[0] || Runtime.packageJSON.mainURL;
+// TODO: report error if URL isn't found.
+const window = Services.ww.openWindow(null, url, '_blank', WINDOW_FEATURES, null);
+console.log(`opened ${url} in new window`);
 Runtime.openDevTools(window);

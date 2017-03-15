@@ -16,24 +16,36 @@
 
 'use strict';
 
+// Polyfill Promise.prototype.finally().
+require('promise.prototype.finally').shim();
+
+const chalk = require('chalk');
+const cli = require('cli');
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
 const fs = require('fs-extra');
 const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
-const ChildProcess = require('child_process');
+const pify = require('pify');
+const spawn = require('child_process').spawn;
 
-const validCommands = [ null, 'run' ];
+const distDir = path.join(__dirname, '..', 'dist');
+const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+
+const validCommands = [ null, 'package', 'run' ];
 const { command, argv } = commandLineCommands(validCommands);
 
 switch(command) {
-case 'run':
-  run();
-  break;
+  case 'package':
+    packageApp();
+    break;
+  case 'run':
+    runApp();
+    break;
 }
 
-function run() {
+function runApp() {
   const optionDefinitions = [
     { name: 'jsdebugger', type: Boolean },
     { name: 'path', type: String, defaultOption: true },
@@ -41,37 +53,156 @@ function run() {
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
 
-  const DIST_DIR = path.join(__dirname, '..', 'dist');
-
-  const EXECUTABLE_DIR = process.platform === 'darwin' ?
-                         path.join(DIST_DIR, 'Runtime.app', 'Contents', 'MacOS') :
-                         path.join(DIST_DIR, 'runtime');
-
-  const EXECUTABLE = process.platform === 'win32' ?
-                     path.join(EXECUTABLE_DIR, 'firefox.exe') :
-                     path.join(EXECUTABLE_DIR, 'firefox');
-
-  const applicationIni = path.join(__dirname, '..', 'application.ini');
+  const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
+  const executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
+  const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
+  const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
 
+  const shellDir = path.join(__dirname, '..', 'shell');
+  const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
+  const appPackageJson = require(path.join(appDir, 'package.json'));
+  const mainEntryPoint = path.join(appDir, appPackageJson.main);
+
+  // Args like 'app', 'new-instance', and 'profile' are handled by nsAppRunner,
+  // which supports uni-dash (-foo), duo-dash (--foo), and slash (/foo) variants
+  // (the latter only on Windows).
+  //
+  // But args like 'aqq' and 'jsdebugger' are handled by nsCommandLine methods,
+  // which don't support duo-dash arguments on Windows. So, for maximal
+  // compatibility (and minimal complexity, modulo this over-long explanation),
+  // we always pass uni-dash args to the runtime.
+  //
+  // Per nsBrowserApp, the 'app' flag always needs to be the first in the list.
+
   let executableArgs = [
-    '--app', applicationIni,
-    '--profile', profileDir,
-    options.path,
+    '-app', applicationIni,
+    '-profile', profileDir,
+    // TODO: figure out why we need 'new-instance' for it to work.
+    '-new-instance',
+    '-aqq', mainEntryPoint,
   ];
 
-  // The Mac and Linux runtimes accept either -jsdebugger or --jsdebugger,
-  // but Windows needs the former, so we use it for all platforms.
+  if (appDir === shellDir) {
+    executableArgs.push(options.path);
+  }
+
   options.jsdebugger && executableArgs.push('-jsdebugger');
-  options['wait-for-jsdebugger'] && executableArgs.push('--wait-for-jsdebugger');
+  options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
 
-  process.env.MOZ_NO_REMOTE = 1;
-
-  const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
-    stdio: 'inherit',
-  });
-  childProcess.on('close', code => {
+  const child = spawn(executable, executableArgs, { stdio: 'inherit' });
+  child.on('close', code => {
     fs.removeSync(profileDir);
     process.exit(code);
+  });
+  process.on('SIGINT', () => {
+    // If we get a SIGINT, then kill our child process.  Tests send us
+    // this signal, as might the user from a terminal window invocation.
+    child.kill('SIGINT');
+  });
+}
+
+function packageApp() {
+  const optionDefinitions = [
+    { name: 'path', type: String, defaultOption: true },
+  ];
+  const options = commandLineArgs(optionDefinitions, { argv: argv });
+  const shellDir = path.join(__dirname, '..', 'shell');
+  const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
+  const appPackageJson = require(path.join(appSourceDir, 'package.json'));
+
+  // TODO: ensure appPackageJson.name can be used as directory/file name.
+  const appName = appPackageJson.name;
+  const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
+  const packageFile = `${appName}.` + { win32: 'zip', darwin: 'dmg', linux: 'tgz' }[process.platform];
+
+  let stageDir, appTargetDir;
+
+  cli.spinner(`  Packaging ${options.path} -> ${packageFile} …`);
+
+  pify(fs.mkdtemp)(path.join(os.tmpdir(), `${packageJson.name}-`))
+  .then(tempDir => {
+    stageDir = path.join(tempDir, stageDirName);
+    appTargetDir = process.platform === 'darwin' ?
+      path.join(stageDir, 'Contents', 'Resources', 'webapp') :
+      path.join(stageDir, 'webapp');
+  })
+  .then(() => {
+    // Copy the runtime to the staging dir.
+    return pify(fs.copy)(installDir, stageDir);
+  })
+  .then(() => {
+    // Rename launcher script to the app's name.
+    const exeDir = process.platform === 'darwin' ? path.join(stageDir, 'Contents', 'MacOS') : stageDir;
+    const source = path.join(exeDir, process.platform === 'win32' ? 'launcher.bat' : 'launcher.sh');
+    const target = path.join(exeDir, process.platform === 'win32' ? `${appName}.bat` : appName);
+    return pify(fs.move)(source, target);
+  })
+  .then(() => {
+    // Update the Info.plist file with the new name of the launcher script.
+    if (process.platform === 'darwin') {
+      const plist = require('simple-plist');
+      const plistFile = path.join(stageDir, 'Contents', 'Info.plist');
+      return pify(plist.readFile)(plistFile)
+      .then(appPlist => {
+        appPlist.CFBundleExecutable = appName;
+        return pify(plist.writeFile)(plistFile, appPlist);
+      });
+    }
+  })
+  .then(() => {
+    // Copy the app to the stage directory.
+    return pify(fs.copy)(appSourceDir, appTargetDir)
+    .then(() => {
+      if (appSourceDir === shellDir) {
+        const appTargetPackageJSONFile = path.join(appTargetDir, 'package.json');
+        const appTargetPackageJSON = require(appTargetPackageJSONFile);
+        appTargetPackageJSON.mainURL = options.path;
+        return pify(fs.writeFile)(appTargetPackageJSONFile, JSON.stringify(appTargetPackageJSON));
+      }
+    });
+  })
+  .then(() => {
+    if (process.platform === 'darwin') {
+      return new Promise((resolve, reject) => {
+        const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, packageFile]);
+        child.on('exit', resolve);
+        // TODO: handle errors returned by hdiutil.
+      });
+    }
+    else if (process.platform === 'linux') {
+      const archiver = require('archiver');
+      return new Promise((resolve, reject) => {
+        const tarFile = fs.createWriteStream(packageFile);
+        const archive = archiver('tar', { gzip: true });
+        tarFile.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(tarFile);
+        archive.directory(stageDir, path.basename(stageDir));
+        archive.finalize();
+      });
+    }
+    else if (process.platform === 'win32') {
+      const archiver = require('archiver');
+      return new Promise((resolve, reject) => {
+        const zipFile = fs.createWriteStream(packageFile);
+        const archive = archiver('zip');
+        zipFile.on('close', resolve);
+        archive.on('error', reject);
+        archive.pipe(zipFile);
+        archive.directory(stageDir, path.basename(stageDir));
+        archive.finalize();
+      });
+    }
+  })
+  .then(() => {
+    cli.spinner(chalk.green.bold('✓ ') + `Packaging ${options.path} -> ${packageFile} … done!`, true);
+  })
+  .catch((error) => {
+    cli.spinner(chalk.red.bold('✗ ') + `Packaging ${options.path} -> ${packageFile} … failed!`, true);
+    console.error(`  Error: ${error}`);
+  })
+  .finally(() => {
+    return fs.remove(stageDir);
   });
 }

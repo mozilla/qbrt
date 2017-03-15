@@ -24,12 +24,13 @@ this.EXPORTED_SYMBOLS = ["Runtime"];
 
 const global = this;
 
-let commandLineArgs;
+let commandLineArgs, packageJSON;
 
 this.Runtime = {
-  get commandLineArgs() { return global.commandLineArgs.slice() },
+  get commandLineArgs() { return global.commandLineArgs },
+  get packageJSON() { return global.packageJSON },
 
-  start(appFile, commandLineArgs) {
+  start(appFile, commandLineArgs, packageJSON) {
     registerChromePrefix(appFile.parent);
 
     const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].createInstance(Ci.nsIPrincipal);
@@ -39,6 +40,7 @@ this.Runtime = {
     });
 
     global.commandLineArgs = commandLineArgs;
+    global.packageJSON = packageJSON;
 
     Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
   },

@@ -5,40 +5,6 @@ metadata:
   owner: '{{ event.head.user.email }}'
   source: '{{ event.head.repo.url }}'
 tasks:
-  - provisionerId: '{{ taskcluster.docker.provisionerId }}'
-    metadata:
-      name: qbrt test Linux
-      description: qbrt automated test suite on Linux
-      owner: '{{ event.head.user.email }}'
-      source: '{{ event.head.repo.url }}'
-    workerType: '{{ taskcluster.docker.workerType }}'
-    extra:
-      github:
-        events:
-          - pull_request.opened
-          - pull_request.closed
-          - pull_request.synchronize
-          - pull_request.reopened
-          - push
-          - release
-    payload:
-      maxRunTime: 3600
-      image: 'node:6'
-      command:
-        - /bin/bash
-        - '--login'
-        - '-c'
-        - >-
-          apt-get update -y &&
-          apt-get install -y libgtk-3-0 libdbus-glib-1-2 xvfb &&
-          git clone {{event.head.repo.url}} repo &&
-          cd repo &&
-          git checkout {{event.head.sha}} &&
-          npm install . &&
-          node ./bin/postinstall.js &&
-          (Xvfb :2 -screen 0 1024x768x24 &) &&
-          export DISPLAY=:2 &&
-          npm test
   - provisionerId: "{{ taskcluster.docker.provisionerId }}"
     metadata:
       name: qbrt test Windows
@@ -64,3 +30,39 @@ tasks:
           - "git checkout {{event.head.repo.branch}}"
           - "npm install"
           - "npm test"
+# Disable Linux until we can figure out why launching it via the shell script
+# causes the executable to segfault.
+# - provisionerId: '{{ taskcluster.docker.provisionerId }}'
+#   metadata:
+#     name: qbrt test Linux
+#     description: qbrt automated test suite on Linux
+#     owner: '{{ event.head.user.email }}'
+#     source: '{{ event.head.repo.url }}'
+#   workerType: '{{ taskcluster.docker.workerType }}'
+#   extra:
+#     github:
+#       events:
+#         - pull_request.opened
+#         - pull_request.closed
+#         - pull_request.synchronize
+#         - pull_request.reopened
+#         - push
+#         - release
+#   payload:
+#     maxRunTime: 3600
+#     image: 'node:6'
+#     command:
+#       - /bin/bash
+#       - '--login'
+#       - '-c'
+#       - >-
+#         apt-get update -y &&
+#         apt-get install -y libgtk-3-0 libdbus-glib-1-2 xvfb &&
+#         git clone {{event.head.repo.url}} repo &&
+#         cd repo &&
+#         git checkout {{event.head.sha}} &&
+#         npm install . &&
+#         node ./bin/postinstall.js &&
+#         (Xvfb :2 -screen 0 1024x768x24 &) &&
+#         export DISPLAY=:2 &&
+#         npm test
