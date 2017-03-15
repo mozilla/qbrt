@@ -31,13 +31,19 @@ const packageJson = require('../package.json');
 const path = require('path');
 const spawn = require('child_process').spawn;
 
+const origWorkDir = process.cwd();
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
 const appDir = path.join(tempDir, process.platform === 'darwin' ? 'hello-world.app' : 'hello-world');
+const commandLineScript = path.join(origWorkDir, 'bin', 'cli.js');
+const helloWorldDir = path.join(origWorkDir, 'test', 'hello-world');
 
 let exitCode = 0;
 
+// Change into the temp dir so the package gets written to there.
+process.chdir(tempDir);
+
 new Promise((resolve, reject) => {
-  const child = spawn('node', [ path.join('bin', 'cli.js'), 'package', 'test/hello-world/' ]);
+  const child = spawn('node', [commandLineScript, 'package', helloWorldDir]);
 
   child.stdout.on('data', data => {
     const output = data.toString('utf8');
@@ -58,7 +64,7 @@ new Promise((resolve, reject) => {
 })
 .then(() => {
   if (process.platform === 'win32') {
-    const source = path.join('dist', 'hello-world.zip');
+    const source = 'hello-world.zip';
     const destination = tempDir;
     // return decompress(source, destination);
     return pify(extract)(source, { dir: destination });
@@ -66,7 +72,7 @@ new Promise((resolve, reject) => {
   else if (process.platform === 'darwin') {
     const mountPoint = path.join(tempDir, 'volume');
     return new Promise((resolve, reject) => {
-      const dmgFile = path.join('dist', 'hello-world.dmg');
+      const dmgFile = 'hello-world.dmg';
       const child = spawn('hdiutil', ['attach', dmgFile, '-mountpoint', mountPoint, '-nobrowse']);
       child.on('exit', resolve);
       child.on('error', reject);
@@ -89,7 +95,7 @@ new Promise((resolve, reject) => {
     });
   }
   else if (process.platform === 'linux') {
-    const source = path.join('dist', 'hello-world.tgz');
+    const source = 'hello-world.tgz';
     const destination = tempDir;
     return decompress(source, destination);
   }
@@ -140,6 +146,7 @@ new Promise((resolve, reject) => {
   exitCode = 1;
 })
 .finally(() => {
+  process.chdir(origWorkDir);
   fs.removeSync(tempDir);
   process.exit(exitCode);
 });
