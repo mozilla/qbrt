@@ -194,7 +194,6 @@ new Promise((resolve, reject) => {
     'defaults',
     'devtools.manifest',
     'modules',
-    'shell',
   ];
 
   for (const file of appFiles) {
