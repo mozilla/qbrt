@@ -19,6 +19,8 @@
 // Polyfill Promise.prototype.finally().
 require('promise.prototype.finally').shim();
 
+const chalk = require('chalk');
+const cli = require('cli');
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
 const fs = require('fs-extra');
@@ -111,14 +113,16 @@ function packageApp() {
   const runtimeDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
   const shellDir = path.join(__dirname, '..', 'shell');
   const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
-  console.log(`appSourceDir: ${appSourceDir}`);
   const appPackageJson = require(path.join(appSourceDir, 'package.json'));
 
   // TODO: ensure appPackageJson.name can be used as directory/file name.
   const appName = appPackageJson.name;
   const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
+  const packageFile = `${appName}.` + { win32: 'zip', darwin: 'dmg', linux: 'tgz' }[process.platform];
 
   let stageDir, appTargetDir;
+
+  cli.spinner(`  Packaging ${options.path} -> ${packageFile} …`);
 
   pify(fs.mkdtemp)(path.join(os.tmpdir(), `${packageJson.name}-`))
   .then(tempDir => {
@@ -126,7 +130,6 @@ function packageApp() {
     appTargetDir = process.platform === 'darwin' ?
       path.join(stageDir, 'Contents', 'Resources', 'webapp') :
       path.join(stageDir, 'webapp');
-    console.log(`target dir: ${stageDir}`);
   })
   .then(() => {
     // Copy the runtime to the staging dir.
@@ -165,23 +168,16 @@ function packageApp() {
   })
   .then(() => {
     if (process.platform === 'darwin') {
-      const dmgFile = path.join(DIST_DIR, `${appName}.dmg`);
-      console.log(dmgFile);
-      // TODO: notify user friendlily that DMG file is being created:
-      // "Copying app to ${dmgFile}…"
-      return pify(fs.remove)(dmgFile)
-      .then(() => {
-        return new Promise((resolve, reject) => {
-          const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, dmgFile]);
-          child.on('exit', resolve);
-          // TODO: handle errors returned by hdiutil.
-        });
+      return new Promise((resolve, reject) => {
+        const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, packageFile]);
+        child.on('exit', resolve);
+        // TODO: handle errors returned by hdiutil.
       });
     }
     else if (process.platform === 'linux') {
       const archiver = require('archiver');
       return new Promise((resolve, reject) => {
-        const tarFile = fs.createWriteStream(path.join(DIST_DIR, `${appName}.tgz`));
+        const tarFile = fs.createWriteStream(packageFile);
         const archive = archiver('tar', { gzip: true });
         tarFile.on('close', resolve);
         archive.on('error', reject);
@@ -193,7 +189,7 @@ function packageApp() {
     else if (process.platform === 'win32') {
       const archiver = require('archiver');
       return new Promise((resolve, reject) => {
-        const zipFile = fs.createWriteStream(path.join(DIST_DIR, `${appName}.zip`));
+        const zipFile = fs.createWriteStream(packageFile);
         const archive = archiver('zip');
         zipFile.on('close', resolve);
         archive.on('error', reject);
@@ -204,10 +200,11 @@ function packageApp() {
     }
   })
   .then(() => {
-    console.log('Archived app.');
+    cli.spinner(chalk.green.bold('✓ ') + `Packaging ${options.path} -> ${packageFile} … done!`, true);
   })
   .catch((error) => {
-    console.error(error);
+    cli.spinner(chalk.red.bold('✗ ') + `Packaging ${options.path} -> ${packageFile} … failed!`, true);
+    console.error(`  Error: ${error}`);
   })
   .finally(() => {
     // TODO: delete temp directory.

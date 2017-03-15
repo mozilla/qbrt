@@ -279,11 +279,11 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!\n', true);
+  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!', true);
 })
-.catch((reason) => {
-  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!\n', true);
-  console.error('Runtime install error: ', reason);
+.catch(error => {
+  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!', true);
+  console.error(`  Error: ${error}`);
   if (fileStream) {
     fileStream.end();
   }
