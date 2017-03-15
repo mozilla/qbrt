@@ -41,19 +41,17 @@ switch(command) {
     packageApp();
     break;
   case 'run':
-    run();
+    runApp();
     break;
 }
 
-function run() {
+function runApp() {
   const optionDefinitions = [
     { name: 'jsdebugger', type: Boolean },
     { name: 'path', type: String, defaultOption: true },
     { name: 'wait-for-jsdebugger', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
-
-  // TODO: refactor executableDir and executable using latest best practices.
 
   const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
   const executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
