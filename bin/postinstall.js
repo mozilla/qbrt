@@ -27,34 +27,39 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
+const plist = require('simple-plist');
 
 const DOWNLOAD_OS = (() => {
   switch (process.platform) {
-  case 'win32':
-    switch (process.arch) {
-    case 'ia32':
-      return 'win';
-    case 'x64':
-      return 'win64';
-    default:
-      throw new Error(`unsupported Windows architecture ${process.arch}`);
-    }
-  case 'linux':
-    switch (process.arch) {
-    case 'ia32':
-      return 'linux';
-    case 'x64':
-      return 'linux64';
-    default:
-      throw new Error(`unsupported Linux architecture ${process.arch}`);
-    }
-  case 'darwin':
-    return 'osx';
+    case 'win32':
+      switch (process.arch) {
+        case 'ia32':
+          return 'win';
+        case 'x64':
+          return 'win64';
+        default:
+          throw new Error(`unsupported Windows architecture ${process.arch}`);
+      }
+    case 'linux':
+      switch (process.arch) {
+        case 'ia32':
+          return 'linux';
+        case 'x64':
+          return 'linux64';
+        default:
+          throw new Error(`unsupported Linux architecture ${process.arch}`);
+      }
+    case 'darwin':
+      return 'osx';
   }
 })();
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
 const DIST_DIR = path.join(__dirname, '..', 'dist');
+const installDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
+const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
+const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
 
 const FILE_EXTENSIONS = {
   'application/x-apple-diskimage': 'dmg',
@@ -106,10 +111,12 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = filePath;
     const destination = DIST_DIR;
-    fs.removeSync(path.join(destination, 'runtime'));
-    return decompress(source, destination)
+    return pify(fs.remove)(path.join(destination, 'runtime'))
     .then(() => {
-      fs.renameSync(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
+      return decompress(source, destination);
+    })
+    .then(() => {
+      return pify(fs.rename)(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
     });
   }
   else if (process.platform === 'darwin') {
@@ -171,28 +178,113 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  // Unzip the browser/omni.ja archive so we can access its devtools.
-  // decompress fails silently on omni.ja, so we use extract-zip here instead.
+  // Copy the qbrt xulapp to the target directory.
 
-  let browserArchivePath = DIST_DIR;
-  if (process.platform === 'darwin') {
-    browserArchivePath = path.join(browserArchivePath, 'Runtime.app', 'Contents', 'Resources');
-  }
-  else {
-    browserArchivePath = path.join(browserArchivePath, 'runtime');
-  }
-  browserArchivePath = path.join(browserArchivePath, 'browser');
+  // TODO: move qbrt xulapp files into a separate source directory
+  // that we can copy in one fell swoop.
 
-  const source = path.join(browserArchivePath, 'omni.ja');
-  const destination = browserArchivePath;
-  return pify(extract)(source, { dir: destination });
+  const sourceDir = path.join(__dirname, '..');
+  const targetDir = path.join(resourcesDir, 'qbrt');
+
+  fs.mkdirSync(targetDir);
+
+  const appFiles = [
+    'application.ini',
+    'chrome',
+    'chrome.manifest',
+    'components',
+    'defaults',
+    'devtools.manifest',
+    'modules',
+  ];
+
+  for (const file of appFiles) {
+    fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
+  }
 })
 .then(() => {
-  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!\n', true);
+  // Expand the browser xulapp's JAR archive so we can access its devtools.
+
+  const targetDir = path.join(resourcesDir, 'browser');
+
+  // "decompress" fails silently on omni.ja, so we use extract-zip here instead.
+  // TODO: figure out the issue with "decompress" (f.e. that the .ja file
+  // extension is unrecognized or that the chrome.manifest file in the archive
+  // conflicts with the one already on disk).
+  return pify(extract)(browserJAR, { dir: targetDir });
 })
-.catch((reason) => {
-  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!\n', true);
-  console.error('Runtime install error: ', reason);
+.then(() => {
+  // Delete the browser xulapp's JAR archive now that we've expanded its files
+  // to reduce the footprint of both this installation and any package created
+  // from it.
+
+  // TODO: also delete browser files that aren't necessary for devtools.
+
+  fs.removeSync(browserJAR);
+})
+.then(() => {
+  // Copy devtools pref files from browser to qbert.
+
+  const sourceDir = path.join(resourcesDir, 'browser', 'defaults', 'preferences');
+  const targetDir = path.join(resourcesDir, 'qbrt', 'defaults', 'preferences');
+
+  const prefFiles = [
+    'debugger.js',
+    'devtools.js',
+  ];
+
+  for (const file of prefFiles) {
+    fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
+  }
+})
+.then(() => {
+  // Move the browser xulapp into a subdirectory of the qbrt xulapp,
+  // so the latter can access the former's devtools.
+
+  const sourceDir = path.join(resourcesDir, 'browser');
+  const targetDir = path.join(resourcesDir, 'qbrt', 'browser');
+
+  // fs-extra.moveSync() is coming soon, according to this pull request
+  // <https://github.com/jprichardson/node-fs-extra/pull/381>;
+  // but in the meantime we need to perform the operation asynchronously.
+  //
+  return new Promise((resolve, reject) => {
+    fs.move(sourceDir, targetDir, err => err ? reject(err) : resolve());
+  });
+})
+.then(() => {
+  // Copy and configure the stub executable.
+
+  switch(process.platform) {
+    case 'win32': {
+      // Copy the stub executable to the executable dir.
+      fs.copySync(path.join(__dirname, '..', 'launcher.bat'), path.join(executableDir, 'launcher.bat'));
+      break;
+    }
+    case 'darwin': {
+      fs.copySync(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'));
+
+      // Configure the bundle to run the stub executable.
+      const plistFile = path.join(installDir, 'Contents', 'Info.plist');
+      const appPlist = plist.readFileSync(plistFile);
+      appPlist.CFBundleExecutable = 'launcher.sh';
+      plist.writeFileSync(plistFile, appPlist);
+
+      break;
+    }
+    case 'linux': {
+      // Copy the stub executable to the executable dir.
+      fs.copySync(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'));
+      break;
+    }
+  }
+})
+.then(() => {
+  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!', true);
+})
+.catch(error => {
+  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!', true);
+  console.error(`  Error: ${error}`);
   if (fileStream) {
     fileStream.end();
   }
