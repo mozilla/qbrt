@@ -109,7 +109,11 @@ function packageApp() {
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
   const runtimeDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
-  const appPackageJson = require(path.join(process.cwd(), options.path, 'package.json'));
+  const shellDir = path.join(__dirname, '..', 'shell');
+  const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
+  console.log(`appSourceDir: ${appSourceDir}`);
+  const appPackageJson = require(path.join(appSourceDir, 'package.json'));
+
   // TODO: ensure appPackageJson.name can be used as directory/file name.
   const appName = appPackageJson.name;
   const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
@@ -149,17 +153,13 @@ function packageApp() {
   })
   .then(() => {
     // Copy the app to the stage directory.
-
-    const shellDir = path.join(__dirname, '..', 'shell');
-    const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
-    console.log(`appSourceDir: ${appSourceDir}`);
-
     return pify(fs.copy)(appSourceDir, appTargetDir)
     .then(() => {
       if (appSourceDir === shellDir) {
-        const appTargetPackageJson = require(path.join(appTargetDir, 'package.json'));
-        appTargetPackageJson.mainURL = options.path;
-        return pify(fs.writeFile)(appTargetPackageJson, JSON.stringify(appTargetPackageJson));
+        const appTargetPackageJSONFile = path.join(appTargetDir, 'package.json');
+        const appTargetPackageJSON = require(appTargetPackageJSONFile);
+        appTargetPackageJSON.mainURL = options.path;
+        return pify(fs.writeFile)(appTargetPackageJSONFile, JSON.stringify(appTargetPackageJSON));
       }
     });
   })

@@ -105,7 +105,7 @@ CommandLineHandler.prototype = {
       }
     }
 
-    let aqqPath;
+    let aqqPath, packageJSON = {};
 
     if (aqqArg) {
       aqqPath = cmdLine.resolveFile(aqqArg);
@@ -113,23 +113,24 @@ CommandLineHandler.prototype = {
         dump(`error: nonexistent path: ${aqqPath.path}\n`);
         return;
       }
+      // TODO: retrieve package.json data from path.
     }
     else {
       let webappDir = Services.dirsvc.get('CurProcD', Ci.nsIFile).parent;
       webappDir.append('webapp');
       let packageJsonFile = webappDir.clone();
       packageJsonFile.append('package.json');
-      let data = JSON.parse(readFile(packageJsonFile));
+      packageJSON = JSON.parse(readFile(packageJsonFile));
 
-      // This will break if data.main is a path rather than just a filename.
+      // This will break if packageJSON.main is a path rather than just a filename.
       // TODO: resolve path properly.
       let mainFile = webappDir.clone();
-      mainFile.append(data.main);
+      mainFile.append(packageJSON.main);
       aqqPath = mainFile;
     }
 
     try {
-      Runtime.start(aqqPath, commandLineArgs);
+      Runtime.start(aqqPath, commandLineArgs, packageJSON);
     }
     catch (ex) {
       dump(`error starting runtime: ${ex}\n`);
