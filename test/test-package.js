@@ -57,8 +57,6 @@ new Promise((resolve, reject) => {
   });
 })
 .then(() => {
-  console.log('extracting package');
-
   if (process.platform === 'win32') {
     const source = path.join('dist', 'hello-world.zip');
     const destination = tempDir;
@@ -97,8 +95,6 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  console.log('running app');
-
   let executable, args = [], shell = false;
 
   switch (process.platform) {
@@ -144,8 +140,6 @@ new Promise((resolve, reject) => {
   exitCode = 1;
 })
 .finally(() => {
-  console.log('finalizing test');
-
   fs.removeSync(tempDir);
   process.exit(exitCode);
 });
