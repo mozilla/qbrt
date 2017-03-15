@@ -24,6 +24,7 @@ const pify = require('pify');
 
 const assert = require('assert');
 const decompress = require('decompress');
+const extract = require('extract-zip');
 const fs = pify(require('fs-extra'));
 const os = require('os');
 const packageJson = require('../package.json');
