@@ -26,7 +26,6 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
-const ChildProcess = require('child_process');
 const spawn = require('child_process').spawn;
 
 const DIST_DIR = path.join(__dirname, '..', 'dist');
@@ -94,12 +93,13 @@ function run() {
   options.jsdebugger && executableArgs.push('-jsdebugger');
   options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
 
-  const childProcess = ChildProcess.spawn(EXECUTABLE, executableArgs, {
-    stdio: 'inherit',
-  });
-  childProcess.on('close', code => {
+  const child = spawn(EXECUTABLE, executableArgs, { stdio: 'inherit' });
+  child.on('close', code => {
     fs.removeSync(profileDir);
     process.exit(code);
+  });
+  process.on('SIGINT', () => {
+    child.kill('SIGINT');
   });
 }
 
