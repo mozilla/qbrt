@@ -61,7 +61,8 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = path.join('dist', 'hello-world.zip');
     const destination = tempDir;
-    return decompress(source, destination);
+    // return decompress(source, destination);
+    return pify(extract)(source, { dir: destination });
   }
   else if (process.platform === 'darwin') {
     const mountPoint = path.join(tempDir, 'volume');
