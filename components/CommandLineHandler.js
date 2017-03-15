@@ -47,8 +47,9 @@ CommandLineHandler.prototype = {
 
   handle: function(cmdLine) {
     // Prevent the runtime's default behavior so it doesn't happen in addition
-    // to the behavior we specify.
-    cmdLine.preventDefault = true;
+    // to the behavior we specify.  This is disabled because the way we remove
+    // browser files means that default behavior no longer occurs.
+    // cmdLine.preventDefault = true;
 
     // Firefox, in nsBrowserContentHandler, has a more robust handler
     // for the --chrome flag, which tries to correct typos in the URL

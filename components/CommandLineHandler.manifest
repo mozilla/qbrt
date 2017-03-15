@@ -1,3 +1,3 @@
 component {236b79c3-ab58-446f-abba-4caba4deb337} CommandLineHandler.js
 contract @mozilla.org/qbrt/clh;1 {236b79c3-ab58-446f-abba-4caba4deb337}
-category command-line-handler a-qbrt @mozilla.org/qbrt/clh;1
+category command-line-handler m-qbrt @mozilla.org/qbrt/clh;1
