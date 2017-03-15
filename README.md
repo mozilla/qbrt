@@ -29,7 +29,7 @@ qbrt run https://eggtimer.org/
 
 Which will start a process and load the URL into a native window:
 
-[screenshot]
+<img width="695" alt="screen shot 2017-03-15 at 01 16 28" src="https://cloud.githubusercontent.com/assets/305455/23939844/c5f39068-091f-11e7-8335-d1ba27fed6f3.png">
 
 URLs loaded in this way don't have privileged access to the system.
 They're treated as web content, not application chrome.
