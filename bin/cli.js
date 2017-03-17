@@ -248,7 +248,7 @@ function displayHelp() {
     {
       header: 'Package options',
       optionList: optionDefinitions,
-      group: [ 'run'],
+      group: [ 'package'],
     },
     {
       header: 'Examples',
