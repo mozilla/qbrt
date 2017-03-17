@@ -23,6 +23,7 @@ const chalk = require('chalk');
 const cli = require('cli');
 const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
+const commandLineUsage = require('command-line-usage');
 const fs = require('fs-extra');
 const os = require('os');
 const packageJson = require('../package.json');
@@ -33,7 +34,7 @@ const spawn = require('child_process').spawn;
 const distDir = path.join(__dirname, '..', 'dist');
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 
-const validCommands = [ null, 'package', 'run' ];
+const validCommands = [ null, 'package', 'run', 'help' ];
 const { command, argv } = commandLineCommands(validCommands);
 
 switch(command) {
@@ -42,6 +43,12 @@ switch(command) {
     break;
   case 'run':
     runApp();
+    break;
+  case 'help':
+    displayHelp();
+    break;
+  default:
+    displayHelp();
     break;
 }
 
@@ -205,4 +212,66 @@ function packageApp() {
   .finally(() => {
     return fs.remove(stageDir);
   });
+}
+
+function displayHelp() {
+  const optionDefinitions = [
+    { name: 'jsdebugger', type: Boolean, group: 'run' },
+    { name: 'path', type: String, defaultOption: true, group: 'run' },
+    { name: 'wait-for-jsdebugger', type: Boolean, group: 'run' },
+    { name: 'path', type: String, defaultOption: true, group: 'package' },
+  ];
+
+
+  const sections = [
+    {
+      header: 'qbrt',
+      content: 'qbrt is a command-line interface to a Gecko desktop app runtime. It\'s designed to simplify the process of building and testing desktop apps using Gecko.',
+    },
+    {
+      header: 'Synopsis',
+      content: '$ qbrt <command> <path or URL>',
+    },
+    {
+      header: 'Command List',
+      content: [
+        { name: 'help', summary: 'Display help information about qbrt.' },
+        { name: 'run', summary: 'Runs a project (local or remote).' },
+        { name: 'package', summary: 'Packages a project for distribution.' },
+      ],
+    },
+    {
+      header: 'Run options',
+      optionList: optionDefinitions,
+      group: [ 'run'],
+    },
+    {
+      header: 'Package options',
+      optionList: optionDefinitions,
+      group: [ 'run'],
+    },
+    {
+      header: 'Examples',
+      content: [
+        {
+          desc: '1. Running a remote project. ',
+          example: '$ qbrt run https://eggtimer.org/',
+        },
+        {
+          desc: '2. Running a local project. ',
+          example: '$ qbrt run path/to/my/app/',
+        },
+        {
+          desc: '3. Packaging an app for distribution. ',
+          example: '$ qbrt package path/to/my/app/',
+        },
+      ],
+    },
+    {
+      content: 'Project home: [underline]{https://github.com/mozilla/qbrt}'
+    },
+  ];
+
+  const usage = commandLineUsage(sections);
+  console.log(usage);
 }

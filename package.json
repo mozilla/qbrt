@@ -19,6 +19,7 @@
     "cli": "^1.0.1",
     "command-line-args": "^4.0.1",
     "command-line-commands": "^2.0.0",
+    "command-line-usage": "^4.0.0",
     "decompress": "^4.0.0",
     "extract-zip": "^1.6.0",
     "fs-extra": "^2.0.0",
