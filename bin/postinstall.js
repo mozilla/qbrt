@@ -204,8 +204,12 @@ new Promise((resolve, reject) => {
 })
 .then(() => {
   // Expand the browser xulapp's JAR archive so we can access its devtools.
+  // We have to expand it into a subdirectory of qbrt's xulapp directory,
+  // because chrome manifests can't reference super-directories.
 
-  const targetDir = path.join(resourcesDir, 'browser');
+  // TODO: limit expansion to browser files that are necessary for devtools.
+
+  const targetDir = path.join(resourcesDir, 'qbrt', 'browser');
 
   // "decompress" fails silently on omni.ja, so we use extract-zip here instead.
   // TODO: figure out the issue with "decompress" (f.e. that the .ja file
@@ -214,18 +218,9 @@ new Promise((resolve, reject) => {
   return pify(extract)(browserJAR, { dir: targetDir });
 })
 .then(() => {
-  // Delete the browser xulapp's JAR archive now that we've expanded its files
-  // to reduce the footprint of both this installation and any package created
-  // from it.
-
-  // TODO: also delete browser files that aren't necessary for devtools.
-
-  fs.removeSync(browserJAR);
-})
-.then(() => {
   // Copy devtools pref files from browser to qbert.
 
-  const sourceDir = path.join(resourcesDir, 'browser', 'defaults', 'preferences');
+  const sourceDir = path.join(resourcesDir, 'qbrt', 'browser', 'defaults', 'preferences');
   const targetDir = path.join(resourcesDir, 'qbrt', 'defaults', 'preferences');
 
   const prefFiles = [
@@ -236,21 +231,6 @@ new Promise((resolve, reject) => {
   for (const file of prefFiles) {
     fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
   }
-})
-.then(() => {
-  // Move the browser xulapp into a subdirectory of the qbrt xulapp,
-  // so the latter can access the former's devtools.
-
-  const sourceDir = path.join(resourcesDir, 'browser');
-  const targetDir = path.join(resourcesDir, 'qbrt', 'browser');
-
-  // fs-extra.moveSync() is coming soon, according to this pull request
-  // <https://github.com/jprichardson/node-fs-extra/pull/381>;
-  // but in the meantime we need to perform the operation asynchronously.
-  //
-  return new Promise((resolve, reject) => {
-    fs.move(sourceDir, targetDir, err => err ? reject(err) : resolve());
-  });
 })
 .then(() => {
   // Copy and configure the stub executable.
