@@ -22,7 +22,7 @@ require('promise.prototype.finally').shim();
 // Require *pify* out of order so we can use it to promisify other modules.
 const pify = require('pify');
 
-const assert = require('assert');
+const extract = require('extract-zip');
 const decompress = require('decompress');
 const fileURL = require('file-url');
 const fs = pify(require('fs-extra'));
@@ -30,6 +30,7 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const spawn = require('child_process').spawn;
+const tap = require('tap');
 
 const origWorkDir = process.cwd();
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
@@ -58,7 +59,7 @@ new Promise((resolve, reject) => {
   });
 
   child.on('exit', code => {
-    assert.equal(code, 0);
+    tap.equal(code, 0);
     resolve();
   });
 })
@@ -66,7 +67,7 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = 'shell.zip';
     const destination = tempDir;
-    return decompress(source, destination);
+    return pify(extract)(source, { dir: destination });
   }
   else if (process.platform === 'darwin') {
     const mountPoint = path.join(tempDir, 'volume');
@@ -77,7 +78,7 @@ new Promise((resolve, reject) => {
       child.on('error', reject);
     })
     .then((code) => {
-      assert.strictEqual(code, 0, 'app disk image (.dmg) attached');
+      tap.equal(code, 0, 'app disk image (.dmg) attached');
       const source = path.join(mountPoint, 'shell.app');
       const destination = appDir;
       return fs.copy(source, destination);
@@ -90,7 +91,7 @@ new Promise((resolve, reject) => {
       });
     })
     .then((code) => {
-      assert.strictEqual(code, 0, 'app disk image (.dmg) detached');
+      tap.equal(code, 0, 'app disk image (.dmg) detached');
     });
   }
   else if (process.platform === 'linux') {
@@ -104,7 +105,14 @@ new Promise((resolve, reject) => {
 
   switch (process.platform) {
     case 'win32':
-      // TODO: invoke the launcher rather than the runtime.
+      // On Windows, the launcher script launches the runtime and then quits
+      // without waiting for the runtime process to exit, so we need to launch
+      // the runtime directly.
+      //
+      // TODO: figure out how to invoke the launcher rather than the runtime
+      // (which will probably require converting the launcher into something
+      // other than a batch script).
+      //
       executable = path.join(appDir, 'firefox.exe');
       args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
       shell = true;
@@ -123,10 +131,19 @@ new Promise((resolve, reject) => {
     child.stdout.on('data', data => {
       const output = data.toString('utf8').trim();
       console.log(output);
-      try {
-        assert(/^console\.log: opened (.*)test\/hello-world\/main\.html in new window$/.test(output));
+      tap.true(/^console\.log: opened (.*)test\/hello-world\/main\.html in new window$/.test(output));
+      if (process.platform === 'win32') {
+        // An app running in the webshell can't quit, so we need to kill
+        // the child process ourselves.  And that requires a different command
+        // on Windows, where we launch the runtime via a shell, and killing
+        // the child process with child.kill() would only kill the shell.
+        //
+        // The /t option to taskkill performs a "tree kill" of the specified
+        // process and its children.
+        //
+        spawn('taskkill', ['/pid', child.pid, '/t']);
       }
-      finally {
+      else {
         child.kill('SIGINT');
       }
     });
@@ -138,7 +155,15 @@ new Promise((resolve, reject) => {
     });
 
     child.on('exit', (code, signal) => {
-      assert.strictEqual(signal, 'SIGINT', 'app exited with SIGINT');
+      if (process.platform === 'win32') {
+        tap.equal(code, 0, 'app exited with success code');
+      }
+      else {
+        tap.equal(signal, 'SIGINT', 'app exited with SIGINT');
+      }
+    });
+
+    child.on('close', (code, signal) => {
       resolve();
     });
   });
@@ -149,6 +174,10 @@ new Promise((resolve, reject) => {
 })
 .finally(() => {
   process.chdir(origWorkDir);
-  fs.removeSync(tempDir);
+})
+.then(() => {
+  return fs.remove(tempDir);
+})
+.then(() => {
   process.exit(exitCode);
 });

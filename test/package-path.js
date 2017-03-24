@@ -22,7 +22,6 @@ require('promise.prototype.finally').shim();
 // Require *pify* out of order so we can use it to promisify other modules.
 const pify = require('pify');
 
-const assert = require('assert');
 const decompress = require('decompress');
 const extract = require('extract-zip');
 const fs = pify(require('fs-extra'));
@@ -30,6 +29,7 @@ const os = require('os');
 const packageJson = require('../package.json');
 const path = require('path');
 const spawn = require('child_process').spawn;
+const tap = require('tap');
 
 const origWorkDir = process.cwd();
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
@@ -58,7 +58,7 @@ new Promise((resolve, reject) => {
   });
 
   child.on('exit', code => {
-    assert.equal(code, 0);
+    tap.equal(code, 0);
     resolve();
   });
 })
@@ -78,7 +78,7 @@ new Promise((resolve, reject) => {
       child.on('error', reject);
     })
     .then((code) => {
-      assert.strictEqual(code, 0, 'app disk image (.dmg) attached');
+      tap.equal(code, 0, 'app disk image (.dmg) attached');
       const source = path.join(mountPoint, 'hello-world.app');
       const destination = appDir;
       return fs.copy(source, destination);
@@ -91,7 +91,7 @@ new Promise((resolve, reject) => {
       });
     })
     .then((code) => {
-      assert.strictEqual(code, 0, 'app disk image (.dmg) detached');
+      tap.equal(code, 0, 'app disk image (.dmg) detached');
     });
   }
   else if (process.platform === 'linux') {
@@ -105,7 +105,14 @@ new Promise((resolve, reject) => {
 
   switch (process.platform) {
     case 'win32':
-      // TODO: invoke the launcher rather than the runtime.
+      // On Windows, the launcher script launches the runtime and then quits
+      // without waiting for the runtime process to exit, so we need to launch
+      // the runtime directly.
+      //
+      // TODO: figure out how to invoke the launcher rather than the runtime
+      // (which will probably require converting the launcher into something
+      // other than a batch script).
+      //
       executable = path.join(appDir, 'firefox.exe');
       args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
       shell = true;
@@ -135,8 +142,8 @@ new Promise((resolve, reject) => {
     });
 
     child.on('exit', (code, signal) => {
-      assert.strictEqual(code, 0, 'app exited with success code');
-      assert.strictEqual(totalOutput.trim(), 'console.log: Hello, World!');
+      tap.equal(code, 0, 'app exited with success code');
+      tap.equal(totalOutput.trim(), 'console.log: Hello, World!');
       resolve();
     });
   });
@@ -147,6 +154,10 @@ new Promise((resolve, reject) => {
 })
 .finally(() => {
   process.chdir(origWorkDir);
-  fs.removeSync(tempDir);
+})
+.then(() => {
+  return fs.remove(tempDir);
+})
+.then(() => {
   process.exit(exitCode);
 });

@@ -16,9 +16,9 @@
 
 'use strict';
 
-const assert = require('assert');
 const path = require('path');
 const spawn = require('child_process').spawn;
+const tap = require('tap');
 
 // Paths are relative to the top-level directory in which `npm test` is run.
 const childProcess = spawn('node', [ path.join('bin', 'cli.js'), 'run', 'test/hello-world/' ]);
@@ -36,7 +36,7 @@ childProcess.stderr.on('data', data => {
 });
 
 childProcess.on('close', code => {
-  assert.equal(code, 0);
-  assert.equal(totalOutput, 'console.log: Hello, World!');
+  tap.equal(code, 0);
+  tap.equal(totalOutput, 'console.log: Hello, World!');
   process.exit(code);
 });

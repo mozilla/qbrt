@@ -11,7 +11,7 @@
   "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
-    "test": "eslint . && node ./test/run-path.js && node ./test/package-path.js && node ./test/run-url.js && node ./test/package-url.js"
+    "test": "eslint . && tap test/*.js --cov --timeout=600"
   },
   "dependencies": {
     "archiver": "^1.3.0",
@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "eslint": "^3.16.1",
-    "file-url": "^2.0.2"
+    "file-url": "^2.0.2",
+    "tap": "^10.3.0"
   }
 }
