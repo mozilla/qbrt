@@ -22,6 +22,7 @@ require('promise.prototype.finally').shim();
 // Require *pify* out of order so we can use it to promisify other modules.
 const pify = require('pify');
 
+const extract = require('extract-zip');
 const decompress = require('decompress');
 const fileURL = require('file-url');
 const fs = pify(require('fs-extra'));
@@ -66,7 +67,7 @@ new Promise((resolve, reject) => {
   if (process.platform === 'win32') {
     const source = 'shell.zip';
     const destination = tempDir;
-    return decompress(source, destination);
+    return pify(extract)(source, { dir: destination });
   }
   else if (process.platform === 'darwin') {
     const mountPoint = path.join(tempDir, 'volume');
