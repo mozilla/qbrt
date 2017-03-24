@@ -105,7 +105,14 @@ new Promise((resolve, reject) => {
 
   switch (process.platform) {
     case 'win32':
-      // TODO: invoke the launcher rather than the runtime.
+      // On Windows, the launcher script launches the runtime and then quits
+      // without waiting for the runtime process to exit, so we need to launch
+      // the runtime directly.
+      //
+      // TODO: figure out how to invoke the launcher rather than the runtime
+      // (which will probably require converting the launcher into something
+      // other than a batch script).
+      //
       executable = path.join(appDir, 'firefox.exe');
       args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
       shell = true;
@@ -124,10 +131,19 @@ new Promise((resolve, reject) => {
     child.stdout.on('data', data => {
       const output = data.toString('utf8').trim();
       console.log(output);
-      try {
-        tap.true(/^console\.log: opened (.*)test\/hello-world\/main\.html in new window$/.test(output));
+      tap.true(/^console\.log: opened (.*)test\/hello-world\/main\.html in new window$/.test(output));
+      if (process.platform === 'win32') {
+        // An app running in the webshell can't quit, so we need to kill
+        // the child process ourselves.  And that requires a different command
+        // on Windows, where we launch the runtime via a shell, and killing
+        // the child process with child.kill() would only kill the shell.
+        //
+        // The /t option to taskkill performs a "tree kill" of the specified
+        // process and its children.
+        //
+        spawn('taskkill', ['/pid', child.pid, '/t']);
       }
-      finally {
+      else {
         child.kill('SIGINT');
       }
     });
@@ -139,7 +155,15 @@ new Promise((resolve, reject) => {
     });
 
     child.on('exit', (code, signal) => {
-      tap.equal(signal, 'SIGINT', 'app exited with SIGINT');
+      if (process.platform === 'win32') {
+        tap.equal(code, 0, 'app exited with success code');
+      }
+      else {
+        tap.equal(signal, 'SIGINT', 'app exited with SIGINT');
+      }
+    });
+
+    child.on('close', (code, signal) => {
       resolve();
     });
   });
@@ -150,6 +174,10 @@ new Promise((resolve, reject) => {
 })
 .finally(() => {
   process.chdir(origWorkDir);
-  fs.removeSync(tempDir);
+})
+.then(() => {
+  return fs.remove(tempDir);
+})
+.then(() => {
   process.exit(exitCode);
 });

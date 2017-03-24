@@ -105,7 +105,14 @@ new Promise((resolve, reject) => {
 
   switch (process.platform) {
     case 'win32':
-      // TODO: invoke the launcher rather than the runtime.
+      // On Windows, the launcher script launches the runtime and then quits
+      // without waiting for the runtime process to exit, so we need to launch
+      // the runtime directly.
+      //
+      // TODO: figure out how to invoke the launcher rather than the runtime
+      // (which will probably require converting the launcher into something
+      // other than a batch script).
+      //
       executable = path.join(appDir, 'firefox.exe');
       args = ['--app', path.win32.resolve(path.join(appDir, 'qbrt/application.ini')), '--new-instance'];
       shell = true;
@@ -147,6 +154,10 @@ new Promise((resolve, reject) => {
 })
 .finally(() => {
   process.chdir(origWorkDir);
-  fs.removeSync(tempDir);
+})
+.then(() => {
+  return fs.remove(tempDir);
+})
+.then(() => {
   process.exit(exitCode);
 });
