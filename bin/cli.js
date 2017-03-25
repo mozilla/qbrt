@@ -216,10 +216,8 @@ function packageApp() {
 
 function displayHelp() {
   const optionDefinitions = [
-    { name: 'jsdebugger', type: Boolean, group: 'run' },
-    { name: 'path', type: String, defaultOption: true, group: 'run' },
-    { name: 'wait-for-jsdebugger', type: Boolean, group: 'run' },
-    { name: 'path', type: String, defaultOption: true, group: 'package' },
+    { name: 'jsdebugger', type: Boolean, group: 'run', description: "Open the runtime toolbox, which is primarily useful for debugging the runtime itself" },
+    { name: 'wait-for-jsdebugger', type: Boolean, group: 'run', description: "Pause the runtime at startup until the runtime toolbox connects." },
   ];
 
 
@@ -244,11 +242,6 @@ function displayHelp() {
       header: 'Run options',
       optionList: optionDefinitions,
       group: [ 'run'],
-    },
-    {
-      header: 'Package options',
-      optionList: optionDefinitions,
-      group: [ 'package'],
     },
     {
       header: 'Examples',
