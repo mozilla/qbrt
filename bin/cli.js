@@ -216,8 +216,8 @@ function packageApp() {
 
 function displayHelp() {
   const optionDefinitions = [
-    { name: 'jsdebugger', type: Boolean, group: 'run', description: "Open the runtime toolbox, which is primarily useful for debugging the runtime itself" },
-    { name: 'wait-for-jsdebugger', type: Boolean, group: 'run', description: "Pause the runtime at startup until the runtime toolbox connects." },
+    { name: 'jsdebugger', type: Boolean, group: 'run', description: 'Open the runtime toolbox, which is primarily useful for debugging the runtime itself.' },
+    { name: 'wait-for-jsdebugger', type: Boolean, group: 'run', description: 'Pause the runtime at startup until the runtime toolbox connects.' },
   ];
 
 
@@ -261,7 +261,7 @@ function displayHelp() {
       ],
     },
     {
-      content: 'Project home: [underline]{https://github.com/mozilla/qbrt}'
+      content: 'Project home: [underline]{https://github.com/mozilla/qbrt}',
     },
   ];
 
