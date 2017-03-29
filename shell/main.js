@@ -38,4 +38,4 @@ const argument = Cc['@mozilla.org/supports-string;1'].createInstance(Ci.nsISuppo
 argument.data = url;
 
 // TODO: report error if URL isn't found.
-const window = Services.ww.openWindow(null, SHELL_URL, '_blank', WINDOW_FEATURES, argument);
+Services.ww.openWindow(null, SHELL_URL, '_blank', WINDOW_FEATURES, argument);
