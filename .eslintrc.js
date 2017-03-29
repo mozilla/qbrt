@@ -12,8 +12,10 @@ module.exports = {
   // move them into file-specific settings, although it's a pain.
   globals: {
     Components: false,
+    document: false,
     dump: false,
     pref: false,
+    window: false,
   },
 
   parserOptions: {

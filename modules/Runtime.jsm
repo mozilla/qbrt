@@ -59,10 +59,15 @@ this.Runtime = {
     // Historically we would have used toolbox-hosts.js to handle this, but
     // DevTools will be moving away from that, and so it seems fine to
     // experiment with toolbox management here.
-    let id = window.QueryInterface(Ci.nsIInterfaceRequestor)
-                   .getInterface(Ci.nsIDOMWindowUtils)
-                   .outerWindowID;
-    let url = `about:devtools-toolbox?type=window&id=${id}`;
+
+    const [type, id] = (() => {
+      return (window.outerWindowID) ?
+        ['tab', window.outerWindowID] :
+        ['window', window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID];
+    })();
+
+    const url = `about:devtools-toolbox?type=${type}&id=${id}`;
+
     let features = "chrome,resizable,centerscreen," +
                    "width=1024,height=768";
     let toolsWindow = Services.ww.openWindow(null, url, null, features, null);
