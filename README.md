@@ -82,3 +82,9 @@ auto-installers nor support signing the package.
 
 In general, qbrt is immature and unstable! It's appropriate for testing,
 but it isn't yet mature and stable enough for you to ship apps with it.
+
+# Contributing
+
+Contributions of all kinds are welcome! As are all contributors. We only ask
+that you treat other contributors with care and respect and observe Mozilla's
+[Community Participation Guidelines](https://www.mozilla.org/en-US/about/governance/policies/participation/).
