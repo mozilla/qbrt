@@ -144,6 +144,9 @@ new Promise((resolve, reject) => {
     child.on('exit', (code, signal) => {
       tap.equal(code, 0, 'app exited with success code');
       tap.equal(totalOutput.trim(), 'console.log: Hello, World!');
+    });
+
+    child.on('close', (code, signal) => {
       resolve();
     });
   });

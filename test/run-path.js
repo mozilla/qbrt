@@ -16,27 +16,44 @@
 
 'use strict';
 
+// Polyfill Promise.prototype.finally().
+require('promise.prototype.finally').shim();
+
 const path = require('path');
 const spawn = require('child_process').spawn;
 const tap = require('tap');
 
-// Paths are relative to the top-level directory in which `npm test` is run.
-const childProcess = spawn('node', [ path.join('bin', 'cli.js'), 'run', 'test/hello-world/' ]);
+let exitCode = 0;
 
-let totalOutput = '';
+new Promise((resolve, reject) => {
+  // Paths are relative to the top-level directory in which `npm test` is run.
+  const child = spawn('node', [ path.join('bin', 'cli.js'), 'run', 'test/hello-world/' ]);
 
-childProcess.stdout.on('data', data => {
-  const output = data.toString('utf8').trim();
-  console.log(output);
-  totalOutput += output;
-});
+  let totalOutput = '';
 
-childProcess.stderr.on('data', data => {
-  console.error(data.toString('utf8').trim());
-});
+  child.stdout.on('data', data => {
+    const output = data.toString('utf8').trim();
+    console.log(output);
+    totalOutput += output;
+  });
 
-childProcess.on('close', code => {
-  tap.equal(code, 0);
-  tap.equal(totalOutput, 'console.log: Hello, World!');
-  process.exit(code);
+  child.stderr.on('data', data => {
+    console.error(data.toString('utf8').trim());
+  });
+
+  child.on('close', code => {
+    tap.equal(totalOutput, 'console.log: Hello, World!');
+    tap.equal(code, 0, 'app exited with success code');
+  });
+
+  child.on('close', (code, signal) => {
+    resolve();
+  });
+})
+.catch(error => {
+  console.error(error);
+  exitCode = 1;
+})
+.finally(() => {
+  process.exit(exitCode);
 });
