@@ -18,7 +18,7 @@ const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 // This is silly, since we already have the web console, but it doesn't
 // seem to write to stdout, which we want for tests.  So we redefine it here.
 // TODO: make web console write to stdout.
-const { console } = Cu.import('resource://gre/modules/Console.jsm', {});
+const { console: Console } = Cu.import('resource://gre/modules/Console.jsm', {});
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 
 window.addEventListener('load', event => {
@@ -26,7 +26,7 @@ window.addEventListener('load', event => {
   const url = window.arguments[0];
 
   browser.loadURI(url, null, null);
-  console.log(`opened ${url} in new window`);
+  Console.log(`opened ${url} in new window`);
   Runtime.openDevTools(browser);
 
   browser.addEventListener('keydown', event => {
