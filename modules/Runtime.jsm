@@ -12,19 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License. */
 
-"use strict";
+'use strict';
 
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
-const { console } = Cu.import("resource://gre/modules/Console.jsm", {});
-const { NetUtil } = Cu.import("resource://gre/modules/NetUtil.jsm", {});
-const { Services } = Cu.import("resource://gre/modules/Services.jsm", {});
-const ChromeRegistry = Cc["@mozilla.org/chrome/chrome-registry;1"].getService(Ci.nsIXULChromeRegistry);
+const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
+const ChromeRegistry = Cc['@mozilla.org/chrome/chrome-registry;1'].getService(Ci.nsIXULChromeRegistry);
 
-this.EXPORTED_SYMBOLS = ["Runtime"];
+this.EXPORTED_SYMBOLS = ['Runtime'];
 
 const global = this;
-
-let commandLineArgs, packageJSON;
 
 this.Runtime = {
   get commandLineArgs() { return global.commandLineArgs },
@@ -33,7 +29,7 @@ this.Runtime = {
   start(appFile, commandLineArgs, packageJSON) {
     registerChromePrefix(appFile.parent);
 
-    const systemPrincipal = Cc["@mozilla.org/systemprincipal;1"].createInstance(Ci.nsIPrincipal);
+    const systemPrincipal = Cc['@mozilla.org/systemprincipal;1'].createInstance(Ci.nsIPrincipal);
 
     const sandbox = new Cu.Sandbox(systemPrincipal, {
       wantComponents: true,
@@ -51,8 +47,8 @@ this.Runtime = {
 
     // Ensure DevTools core modules are loaded, including support for the about
     // URL below which is registered dynamically.
-    const { loader } = Cu.import("resource://devtools/shared/Loader.jsm", {});
-    loader.require("devtools/client/framework/devtools-browser");
+    const { loader } = Cu.import('resource://devtools/shared/Loader.jsm', {});
+    loader.require('devtools/client/framework/devtools-browser');
 
     // The current approach below avoids the need for a container window
     // wrapping a tools frame, but it does replicate close handling, etc.
@@ -68,18 +64,18 @@ this.Runtime = {
 
     const url = `about:devtools-toolbox?type=${type}&id=${id}`;
 
-    let features = "chrome,resizable,centerscreen," +
-                   "width=1024,height=768";
+    let features = 'chrome,resizable,centerscreen,width=1024,height=768';
     let toolsWindow = Services.ww.openWindow(null, url, null, features, null);
 
     let onLoad = () => {
-      toolsWindow.removeEventListener("load", onLoad);
-      toolsWindow.addEventListener("unload", onUnload);
-    }
+      toolsWindow.removeEventListener('load', onLoad);
+      toolsWindow.addEventListener('unload', onUnload);
+    };
+
     let onUnload = () => {
-      toolsWindow.removeEventListener("unload", onUnload);
-      toolsWindow.removeEventListener("message", onMessage);
-    }
+      toolsWindow.removeEventListener('unload', onUnload);
+      toolsWindow.removeEventListener('message', onMessage);
+    };
 
     // Close the DevTools window if the browser window closes
     let onBrowserClosed = () => {
@@ -98,48 +94,37 @@ this.Runtime = {
       }
 
       switch (data.name) {
-        case "toolbox-close":
+        case 'toolbox-close':
           toolsWindow.close();
           break;
         // We get both set-host-title and toolbox-title, and they provide
         // the same title, although their semantics vary.  Weird, but we simply
         // ignore one and use the other.
-        case "set-host-title":
+        case 'set-host-title':
           toolsWindow.document.title = data.title;
           break;
-        // case "toolbox-title":
+        // case 'toolbox-title':
         //   toolsWindow.document.title = data.data.value;
         //   break;
       }
     };
 
-    toolsWindow.addEventListener("message", onMessage);
-    toolsWindow.addEventListener("load", onLoad);
+    toolsWindow.addEventListener('message', onMessage);
+    toolsWindow.addEventListener('load', onLoad);
     window.addEventListener('close', onBrowserClosed);
   },
 
 };
 
-function readFile(file) {
-  let stream = NetUtil.newChannel({
-    uri: file,
-    loadUsingSystemPrincipal: true,
-  }).open2();
-  let count = stream.available();
-  let data = NetUtil.readInputStreamToString(stream, count);
-  stream.close();
-  return data;
-}
-
 function registerChromePrefix(appDir) {
   let appDirURI = Services.io.newFileURI(appDir);
   let manifestText = `content app ${appDirURI.spec}/`;
 
-  const tempFile = Services.dirsvc.get("TmpD", Ci.nsIFile);
-  tempFile.append("temp.manifest");
+  const tempFile = Services.dirsvc.get('TmpD', Ci.nsIFile);
+  tempFile.append('temp.manifest');
   tempFile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0o600);
 
-  let fileStream = Cc["@mozilla.org/network/file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
+  let fileStream = Cc['@mozilla.org/network/file-output-stream;1'].createInstance(Ci.nsIFileOutputStream);
   fileStream.init(tempFile, -1, -1, 0);
   fileStream.write(manifestText, manifestText.length);
   fileStream.close();
