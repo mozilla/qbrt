@@ -23,6 +23,7 @@ const tap = require('tap');
 
 const mainURL = fileURL(path.resolve('test', 'hello-world', 'main.html'));
 const child = spawn('node', [ path.join('bin', 'cli.js'), 'run', mainURL ]);
+const outputRegex = /opened (.*)test\/hello-world\/main\.html in new window/;
 
 let totalOutput = '';
 
@@ -38,7 +39,7 @@ child.stderr.on('data', data => {
 });
 
 child.on('close', (code, signal) => {
-  tap.true(/^console\.log: opened (.*)test\/hello-world\/main\.html in new window$/.test(totalOutput.trim()));
+  tap.true(outputRegex.test(totalOutput), 'output confirms page opened');
 
   // Windows and Mac (or perhaps different versions of Node) seem to disagree
   // about the values of code and signal here.

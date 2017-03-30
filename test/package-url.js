@@ -127,24 +127,38 @@ new Promise((resolve, reject) => {
 
   return new Promise((resolve, reject) => {
     const child = spawn(executable, args, { shell: shell });
+    const outputRegex = /opened (.*)test\/hello-world\/main\.html in new window/;
+
+    let totalOutput = '';
+    let quitting = false;
 
     child.stdout.on('data', data => {
-      const output = data.toString('utf8').trim();
-      console.log(output);
-      tap.true(/^console\.log: opened (.*)test\/hello-world\/main\.html in new window$/.test(output));
-      if (process.platform === 'win32') {
-        // An app running in the webshell can't quit, so we need to kill
-        // the child process ourselves.  And that requires a different command
-        // on Windows, where we launch the runtime via a shell, and killing
-        // the child process with child.kill() would only kill the shell.
-        //
-        // The /t option to taskkill performs a "tree kill" of the specified
-        // process and its children.
-        //
-        spawn('taskkill', ['/pid', child.pid, '/t']);
-      }
-      else {
-        child.kill('SIGINT');
+      const output = data.toString('utf8');
+      totalOutput += output;
+      console.log(output.trim());
+
+      if (outputRegex.test(totalOutput) && !quitting) {
+        // Now that the app has output the data we were looking for,
+        // kill the app.  We assert that the output contains the data
+        // after the app finishes dying, since eventually the app
+        // will quit itself instead of relying on us to kill it.
+
+        if (process.platform === 'win32') {
+          // An app running in the webshell can't quit, so we need to kill
+          // the child process ourselves.  And that requires a different command
+          // on Windows, where we launch the runtime via a shell, and killing
+          // the child process with child.kill() would only kill the shell.
+          //
+          // The /t option to taskkill performs a "tree kill" of the specified
+          // process and its children.
+          //
+          spawn('taskkill', ['/pid', child.pid, '/t']);
+        }
+        else {
+          child.kill('SIGINT');
+        }
+
+        quitting = true;
       }
     });
 
@@ -155,6 +169,8 @@ new Promise((resolve, reject) => {
     });
 
     child.on('exit', (code, signal) => {
+      tap.true(outputRegex.test(totalOutput), 'output confirms page opened');
+
       if (process.platform === 'win32') {
         tap.equal(code, 0, 'app exited with success code');
       }
