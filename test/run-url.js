@@ -54,7 +54,13 @@ new Promise((resolve, reject) => {
 
   child.on('exit', (code, signal) => {
     tap.true(outputRegex.test(totalOutput), 'output confirms page opened');
-    tap.equal(code, 0, 'app exited with success code');
+
+    if (process.platform === 'win32') {
+      tap.equal(signal, 'SIGINT', 'app exited with SIGINT');
+    }
+    else {
+      tap.equal(code, 0, 'app exited with success code');
+    }
   });
 
   child.on('close', (code, signal) => {
