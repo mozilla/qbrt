@@ -26,12 +26,21 @@ const child = spawn('node', [ path.join('bin', 'cli.js'), 'run', mainURL ]);
 const outputRegex = /opened (.*)test\/hello-world\/main\.html in new window/;
 
 let totalOutput = '';
+let quitting = false;
 
 child.stdout.on('data', data => {
   const output = data.toString('utf8');
   totalOutput += output;
   console.log(output.trim());
-  child.kill('SIGINT');
+
+  if (outputRegex.test(totalOutput) && !quitting) {
+    // Now that the app has output the data we were looking for,
+    // kill the app.  We assert that the output contains the data
+    // after the app finishes dying, since eventually the app
+    // will quit itself instead of relying on us to kill it.
+    child.kill('SIGINT');
+    quitting = true;
+  }
 });
 
 child.stderr.on('data', data => {
