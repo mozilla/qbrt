@@ -13,7 +13,11 @@
    - See the License for the specific language governing permissions and
    - limitations under the License. -->
 
-<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<window id="main-window"
+        windowtype="navigator:browser"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <script type="application/javascript" src="shell.js"/>
   <browser id="content" type="content-primary" flex="1"/>
 </window>
