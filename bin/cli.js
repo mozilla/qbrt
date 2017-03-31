@@ -99,16 +99,16 @@ function runApp() {
 
   const child = spawn(executable, executableArgs);
 
-  child.on('close', code => {
-    fs.removeSync(profileDir);
-    process.exit(code);
-  });
-
-  // In theory, we should be able to specify the stdio: inherit option
+  // In theory, we should be able to specify the stdio: 'inherit' option
   // when spawning the child to forward its output to our stdout/err streams.
   // But that doesn't work on Windows in a MozillaBuild console.
   child.stdout.on('data', data => process.stdout.write(data));
   child.stderr.on('data', data => process.stderr.write(data));
+
+  child.on('close', code => {
+    fs.removeSync(profileDir);
+    process.exit(code);
+  });
 
   process.on('SIGINT', () => {
     // If we get a SIGINT, then kill our child process.  Tests send us

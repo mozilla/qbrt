@@ -41,8 +41,8 @@ this.Runtime = {
     Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
   },
 
-  openDevTools(window) {
-    // TODO: When tools can be opened inside the content window, support
+  openDevTools(target) {
+    // TODO: When tools can be opened inside the target window, support
     // `detach` option to force into a new window instead.
 
     // Ensure DevTools core modules are loaded, including support for the about
@@ -52,49 +52,42 @@ this.Runtime = {
 
     // The current approach below avoids the need for a container window
     // wrapping a tools frame, but it does replicate close handling, etc.
-    // Historically we would have used toolbox-hosts.js to handle this, but
-    // DevTools will be moving away from that, and so it seems fine to
-    // experiment with toolbox management here.
-    const [type, id, topmostWindow] = (() => {
-      return ('outerWindowID' in window) ?
-        // The "window" is a <xul:browser> element.
-      [
-        'tab',
-        window.outerWindowID,
-        window.ownerGlobal,
-      ] :
-      // The "window" is a ChromeWindow.
-      [
-        'window',
-        window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID,
-        window,
-      ];
-    })();
+    // Historically we would have used toolbox-hosts.js to handle this,
+    // but DevTools will be moving away from that, and so it seems fine
+    // to experiment with toolbox management here.
+
+    // Determine the target's type, id, and associated application window
+    // (which could be the target itself).  Currently we support targets
+    // that are <xul:browser> elements (i.e. have a outerWindowID property)
+    // and those that are ChromeWindow (i.e. don't have such a property).
+    const [type, id, appWindow] = 'outerWindowID' in target ?
+      ['tab', target.outerWindowID, target.ownerGlobal] :
+      ['window', getOuterWindowID(target), target];
 
     const url = `about:devtools-toolbox?type=${type}&id=${id}`;
 
-    let features = 'chrome,resizable,centerscreen,width=1024,height=768';
-    let toolsWindow = Services.ww.openWindow(null, url, null, features, null);
+    const features = 'chrome,resizable,centerscreen,width=1024,height=768';
+    const toolsWindow = Services.ww.openWindow(null, url, null, features, null);
 
-    let onLoad = () => {
+    const onLoad = () => {
       toolsWindow.removeEventListener('load', onLoad);
       toolsWindow.addEventListener('unload', onUnload);
     };
 
-    let onUnload = () => {
+    const onUnload = () => {
       toolsWindow.removeEventListener('unload', onUnload);
       toolsWindow.removeEventListener('message', onMessage);
     };
 
-    // Close the DevTools window if the browser window closes
-    let onBrowserClosed = () => {
+    // Close the DevTools window if the target window closes.
+    const onTargetClose = () => {
       toolsWindow.close();
     };
 
     // Listen for the toolbox's built-in close button, which sends a message
     // asking the toolbox's opener how to handle things.  In this case, just
     // close the toolbox.
-    let onMessage = ({ data }) => {
+    const onMessage = ({ data }) => {
       // Sometimes `data` is a String (f.e. on toolbox-title or toolbox-close),
       // while other times it's an Object (f.e. on set-host-title), which feels
       // like an upstream bug.  Anyway, for now we parse it conditionally.
@@ -120,7 +113,7 @@ this.Runtime = {
 
     toolsWindow.addEventListener('message', onMessage);
     toolsWindow.addEventListener('load', onLoad);
-    topmostWindow.addEventListener('close', onBrowserClosed);
+    appWindow.addEventListener('close', onTargetClose);
   },
 
 };
@@ -142,4 +135,8 @@ function registerChromePrefix(appDir) {
   ChromeRegistry.checkForNewChrome();
 
   tempFile.remove(false);
+}
+
+function getOuterWindowID(window) {
+  return window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
 }
