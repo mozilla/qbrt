@@ -218,7 +218,7 @@ new Promise((resolve, reject) => {
   return pify(extract)(browserJAR, { dir: targetDir });
 })
 .then(() => {
-  // Copy devtools pref files from browser to qbert.
+  // Copy devtools pref files from browser to qbrt.
 
   const sourceDir = path.join(resourcesDir, 'qbrt', 'browser', 'defaults', 'preferences');
   const targetDir = path.join(resourcesDir, 'qbrt', 'defaults', 'preferences');

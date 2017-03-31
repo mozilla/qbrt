@@ -33,7 +33,7 @@ if (Services.appinfo.OS === 'Darwin') {
   Cc['@mozilla.org/widget/macdocksupport;1'].getService(Ci.nsIMacDockSupport).activateApplication(true);
 }
 
-const url = Runtime.commandLineArgs[0] || Runtime.packageJSON.mainURL;
+const url = Runtime.commandLineArgs[0] || Runtime.packageJSON.mainURL || 'index.html';
 const argument = Cc['@mozilla.org/supports-string;1'].createInstance(Ci.nsISupportsString);
 argument.data = url;
 
