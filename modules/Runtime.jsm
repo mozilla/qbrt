@@ -56,19 +56,19 @@ this.Runtime = {
     // DevTools will be moving away from that, and so it seems fine to
     // experiment with toolbox management here.
     const [type, id, topmostWindow] = (() => {
-      return (window.outerWindowID) ?
+      return ('outerWindowID' in window) ?
         // The "window" is a <xul:browser> element.
-        [
-          'tab',
-          window.outerWindowID,
-          window.ownerGlobal
-        ] :
-        // The "window" is a ChromeWindow.
-        [
-          'window',
-          window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID,
-          window,
-        ];
+      [
+        'tab',
+        window.outerWindowID,
+        window.ownerGlobal,
+      ] :
+      // The "window" is a ChromeWindow.
+      [
+        'window',
+        window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID,
+        window,
+      ];
     })();
 
     const url = `about:devtools-toolbox?type=${type}&id=${id}`;
