@@ -24,7 +24,7 @@ window.addEventListener('load', event => {
   browser.loadURI(url, null, null);
   // dump instead of console.log to write to stdout for tests.
   dump(`opened ${url} in new window\n`);
-  Runtime.openDevTools(browser, window);
+  Runtime.openDevTools(browser);
 
   browser.addEventListener('keydown', event => {
     // Reload the web page when the F5 key is pressed.
