@@ -55,11 +55,20 @@ this.Runtime = {
     // Historically we would have used toolbox-hosts.js to handle this, but
     // DevTools will be moving away from that, and so it seems fine to
     // experiment with toolbox management here.
-
-    const [type, id] = (() => {
+    const [type, id, topmostWindow] = (() => {
       return (window.outerWindowID) ?
-        ['tab', window.outerWindowID] :
-        ['window', window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID];
+        // The "window" is a <xul:browser> element.
+        [
+          'tab',
+          window.outerWindowID,
+          window.ownerGlobal
+        ] :
+        // The "window" is a ChromeWindow.
+        [
+          'window',
+          window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID,
+          window,
+        ];
     })();
 
     const url = `about:devtools-toolbox?type=${type}&id=${id}`;
@@ -111,7 +120,7 @@ this.Runtime = {
 
     toolsWindow.addEventListener('message', onMessage);
     toolsWindow.addEventListener('load', onLoad);
-    window.addEventListener('close', onBrowserClosed);
+    topmostWindow.addEventListener('close', onBrowserClosed);
   },
 
 };
