@@ -126,7 +126,7 @@ CommandLineHandler.prototype = {
       // This will break if packageJSON.main is a path rather than just a filename.
       // TODO: resolve path properly.
       let mainFile = webappDir.clone();
-      mainFile.append(packageJSON.main);
+      mainFile.append(packageJSON.main || 'index.js');
       aqqPath = mainFile;
     }
 
