@@ -5,6 +5,7 @@
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "Apache-2.0",
   "repository": "mozilla/qbrt",
+  "homepage": "https://github.com/mozilla/qbrt",
   "engines": {
     "node": ">=5.10.0"
   },

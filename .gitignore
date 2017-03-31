@@ -62,3 +62,8 @@ typings/
 
 # dotenv environment variables file
 .env
+
+# Generated binary packages
+*.dmg
+*.tgz
+*.zip
