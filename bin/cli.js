@@ -97,11 +97,19 @@ function runApp() {
   options.jsdebugger && executableArgs.push('-jsdebugger');
   options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
 
-  const child = spawn(executable, executableArgs, { stdio: 'inherit' });
+  const child = spawn(executable, executableArgs);
+
+  // In theory, we should be able to specify the stdio: 'inherit' option
+  // when spawning the child to forward its output to our stdout/err streams.
+  // But that doesn't work on Windows in a MozillaBuild console.
+  child.stdout.on('data', data => process.stdout.write(data));
+  child.stderr.on('data', data => process.stderr.write(data));
+
   child.on('close', code => {
     fs.removeSync(profileDir);
     process.exit(code);
   });
+
   process.on('SIGINT', () => {
     // If we get a SIGINT, then kill our child process.  Tests send us
     // this signal, as might the user from a terminal window invocation.

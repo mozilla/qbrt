@@ -12,8 +12,10 @@ module.exports = {
   // move them into file-specific settings, although it's a pain.
   globals: {
     Components: false,
+    document: false,
     dump: false,
     pref: false,
+    window: false,
   },
 
   parserOptions: {
@@ -43,7 +45,7 @@ module.exports = {
 
     'quotes': ['error', 'single'],
     'quote-props': ['error', 'consistent-as-needed'],
-    'semi': ['error', 'always'],
+    'semi': ['error', 'always', { omitLastInOneLineBlock: true }],
     'space-before-function-paren': ['error', 'never'],
   },
 };

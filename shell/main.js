@@ -17,7 +17,8 @@
 const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
-const { console } = Cu.import('resource://gre/modules/Console.jsm', {});
+
+const SHELL_URL = 'chrome://app/content/shell.xul';
 
 const WINDOW_FEATURES = [
   'width=640',
@@ -33,7 +34,8 @@ if (Services.appinfo.OS === 'Darwin') {
 }
 
 const url = Runtime.commandLineArgs[0] || Runtime.packageJSON.mainURL;
+const argument = Cc['@mozilla.org/supports-string;1'].createInstance(Ci.nsISupportsString);
+argument.data = url;
+
 // TODO: report error if URL isn't found.
-const window = Services.ww.openWindow(null, url, '_blank', WINDOW_FEATURES, null);
-console.log(`opened ${url} in new window`);
-Runtime.openDevTools(window);
+Services.ww.openWindow(null, SHELL_URL, '_blank', WINDOW_FEATURES, argument);
