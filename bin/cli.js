@@ -34,10 +34,26 @@ const spawn = require('child_process').spawn;
 const distDir = path.join(__dirname, '..', 'dist');
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 
-const validCommands = [ null, 'package', 'run', 'help' ];
-const { command, argv } = commandLineCommands(validCommands);
+const validCommands = [ null, 'package', 'run', 'version', 'help' ];
+let parsedCommands = {};
 
-switch(command) {
+try {
+  parsedCommands = commandLineCommands(validCommands);
+}
+catch (error) {
+  if (error.name === 'INVALID_COMMAND') {
+    displayHelp();
+    process.exit(1);
+  }
+  else {
+    throw error;
+  }
+}
+
+const command = parsedCommands.command;
+const argv = parsedCommands.argv;
+
+switch (command) {
   case 'package':
     packageApp();
     break;
@@ -48,15 +64,21 @@ switch(command) {
     displayHelp();
     break;
   default:
+    if (argv.includes('-v') ||
+        argv.includes('--v') ||
+        argv.includes('--version')) {
+      displayVersion();
+      break;
+    }
     displayHelp();
     break;
 }
 
 function runApp() {
   const optionDefinitions = [
-    { name: 'jsdebugger', type: Boolean },
-    { name: 'path', type: String, defaultOption: true },
-    { name: 'wait-for-jsdebugger', type: Boolean },
+    { name: 'jsdebugger', alias: 'd', type: Boolean },
+    { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: argv[0] || process.cwd() },
+    { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
 
@@ -69,7 +91,7 @@ function runApp() {
   const shellDir = path.join(__dirname, '..', 'shell');
   const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
   const appPackageJson = require(path.join(appDir, 'package.json'));
-  const mainEntryPoint = path.join(appDir, appPackageJson.main);
+  const mainEntryPoint = path.join(appDir, appPackageJson.main || 'index.js');
 
   // Args like 'app', 'new-instance', and 'profile' are handled by nsAppRunner,
   // which supports uni-dash (-foo), duo-dash (--foo), and slash (/foo) variants
@@ -94,8 +116,12 @@ function runApp() {
     executableArgs.push(options.path);
   }
 
-  options.jsdebugger && executableArgs.push('-jsdebugger');
-  options['wait-for-jsdebugger'] && executableArgs.push('-wait-for-jsdebugger');
+  if (options.jsdebugger) {
+    executableArgs.push('-jsdebugger');
+  }
+  if (options['wait-for-jsdebugger']) {
+    executableArgs.push('-wait-for-jsdebugger');
+  }
 
   const child = spawn(executable, executableArgs);
 
@@ -119,15 +145,16 @@ function runApp() {
 
 function packageApp() {
   const optionDefinitions = [
-    { name: 'path', type: String, defaultOption: true },
+    { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: argv[0] || process.cwd() },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
   const shellDir = path.join(__dirname, '..', 'shell');
   const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
   const appPackageJson = require(path.join(appSourceDir, 'package.json'));
 
-  // TODO: ensure appPackageJson.name can be used as directory/file name.
-  const appName = appPackageJson.name;
+  // Check `productName` first since it's often used by Electron apps.
+  // TODO: ensure `appName` can be used as directory/file name.
+  const appName = appPackageJson.productName || appPackageJson.name;
   const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
   const packageFile = `${appName}.` + { win32: 'zip', darwin: 'dmg', linux: 'tgz' }[process.platform];
 
@@ -222,12 +249,15 @@ function packageApp() {
   });
 }
 
+function displayVersion() {
+  console.log(packageJson.version);
+}
+
 function displayHelp() {
   const optionDefinitions = [
-    { name: 'jsdebugger', type: Boolean, group: 'run', description: 'Open the runtime toolbox, which is primarily useful for debugging the runtime itself.' },
-    { name: 'wait-for-jsdebugger', type: Boolean, group: 'run', description: 'Pause the runtime at startup until the runtime toolbox connects.' },
+    { name: 'jsdebugger', alias: 'd', type: Boolean, group: 'run', description: 'Open the runtime toolbox, which is primarily useful for debugging the runtime itself.' },
+    { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean, group: 'run', description: 'Pause the runtime at startup until the runtime toolbox connects.' },
   ];
-
 
   const sections = [
     {
@@ -242,6 +272,7 @@ function displayHelp() {
       header: 'Command List',
       content: [
         { name: 'help', summary: 'Display help information about qbrt.' },
+        { name: 'version', summary: 'Display qbrt version.' },
         { name: 'run', summary: 'Runs a project (local or remote).' },
         { name: 'package', summary: 'Packages a project for distribution.' },
       ],
@@ -249,7 +280,7 @@ function displayHelp() {
     {
       header: 'Run options',
       optionList: optionDefinitions,
-      group: [ 'run'],
+      group: [ 'run' ],
     },
     {
       header: 'Examples',
@@ -269,7 +300,7 @@ function displayHelp() {
       ],
     },
     {
-      content: 'Project home: [underline]{https://github.com/mozilla/qbrt}',
+      content: `Project home: [underline]{${packageJson.homepage}}`,
     },
   ];
 

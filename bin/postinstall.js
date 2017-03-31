@@ -235,7 +235,7 @@ new Promise((resolve, reject) => {
 .then(() => {
   // Copy and configure the stub executable.
 
-  switch(process.platform) {
+  switch (process.platform) {
     case 'win32': {
       // Copy the stub executable to the executable dir.
       fs.copySync(path.join(__dirname, '..', 'launcher.bat'), path.join(executableDir, 'launcher.bat'));
