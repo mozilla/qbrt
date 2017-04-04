@@ -16,7 +16,6 @@
 
 'use strict';
 
-const ChildProcess = require('child_process');
 const chalk = require('chalk');
 const cli = require('cli');
 const decompress = require('decompress');
@@ -29,6 +28,7 @@ const path = require('path');
 const pify = require('pify');
 const plist = require('simple-plist');
 const postinstallXULApp = require('./postinstall-xulapp');
+const spawn = require('child_process').spawn;
 
 const DOWNLOAD_OS = (() => {
   switch (process.platform) {
@@ -122,15 +122,15 @@ new Promise((resolve, reject) => {
   }
   else if (process.platform === 'darwin') {
     return (new Promise((resolve, reject) => {
-      const childProcess = ChildProcess.spawn(
+      const child = spawn(
         'hdiutil',
         [ 'attach', filePath, '-mountpoint', mountPoint, '-nobrowse', '-quiet' ],
         {
           stdio: 'inherit',
         }
       );
-      childProcess.on('exit', resolve);
-      childProcess.on('error', reject);
+      child.on('exit', resolve);
+      child.on('error', reject);
     }))
     .then((exitCode) => {
       if (exitCode) {
@@ -151,15 +151,15 @@ new Promise((resolve, reject) => {
     })
     .then(() => {
       return new Promise((resolve, reject) => {
-        const childProcess = ChildProcess.spawn(
+        const child = spawn(
           'hdiutil',
           [ 'detach', mountPoint, '-quiet' ],
           {
             stdio: 'inherit',
           }
         );
-        childProcess.on('exit', resolve);
-        childProcess.on('error', reject);
+        child.on('exit', resolve);
+        child.on('error', reject);
       });
     })
     .then((exitCode) => {
