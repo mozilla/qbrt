@@ -28,6 +28,7 @@ const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 const plist = require('simple-plist');
+const postinstallXULApp = require('./postinstall-xulapp');
 
 const DOWNLOAD_OS = (() => {
   switch (process.platform) {
@@ -178,29 +179,7 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  // Copy the qbrt xulapp to the target directory.
-
-  // TODO: move qbrt xulapp files into a separate source directory
-  // that we can copy in one fell swoop.
-
-  const sourceDir = path.join(__dirname, '..');
-  const targetDir = path.join(resourcesDir, 'qbrt');
-
-  fs.mkdirSync(targetDir);
-
-  const appFiles = [
-    'application.ini',
-    'chrome',
-    'chrome.manifest',
-    'components',
-    'defaults',
-    'devtools.manifest',
-    'modules',
-  ];
-
-  for (const file of appFiles) {
-    fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
-  }
+  return postinstallXULApp.install();
 })
 .then(() => {
   // Expand the browser xulapp's JAR archive so we can access its devtools.
