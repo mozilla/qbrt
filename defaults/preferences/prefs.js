@@ -15,6 +15,7 @@
 // App-specific preferences, in alphabetical order.
 
 pref('browser.dom.window.dump.enabled', true);
+pref('browser.hiddenWindowChromeURL', 'chrome://qbrt/content/main.html');
 pref('devtools.chrome.enabled', true);
 pref('devtools.debugger.prompt-connection', false);
 pref('devtools.debugger.remote-enabled', true);

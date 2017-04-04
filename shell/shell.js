@@ -19,7 +19,7 @@ const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 
 window.addEventListener('load', event => {
   const browser = document.getElementById('content');
-  const url = window.arguments[0];
+  const url = decodeURIComponent(new URL(window.location).search.substr(1));
 
   browser.loadURI(url, null, null);
   // dump instead of console.log to write to stdout for tests.
