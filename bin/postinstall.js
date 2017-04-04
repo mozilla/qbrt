@@ -55,8 +55,8 @@ const DOWNLOAD_OS = (() => {
 })();
 
 const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
-const DIST_DIR = path.join(__dirname, '..', 'dist');
-const installDir = path.join(DIST_DIR, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+const distDir = path.join(__dirname, '..', 'dist', process.platform);
+const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
 const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
 const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
@@ -69,7 +69,7 @@ const FILE_EXTENSIONS = {
 
 cli.spinner('  Installing runtime…');
 
-fs.ensureDirSync(DIST_DIR);
+fs.ensureDirSync(distDir);
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
 const mountPoint = path.join(tempDir, 'volume');
 
@@ -110,7 +110,7 @@ new Promise((resolve, reject) => {
 .then(() => {
   if (process.platform === 'win32') {
     const source = filePath;
-    const destination = DIST_DIR;
+    const destination = distDir;
     return pify(fs.remove)(path.join(destination, 'runtime'))
     .then(() => {
       return decompress(source, destination);
@@ -144,7 +144,7 @@ new Promise((resolve, reject) => {
       // XXX Give the destination a different name so searching for "Firefox"
       // in Spotlight doesn't return this copy.
       //
-      const destination = path.join(DIST_DIR, 'Runtime.app');
+      const destination = path.join(distDir, 'Runtime.app');
       fs.removeSync(destination);
       return fs.copySync(source, destination);
     })
@@ -169,7 +169,7 @@ new Promise((resolve, reject) => {
   }
   else if (process.platform === 'linux') {
     const source = filePath;
-    const destination = DIST_DIR;
+    const destination = distDir;
     fs.removeSync(path.join(destination, 'runtime'));
     return decompress(source, destination)
     .then(() => {

@@ -31,7 +31,7 @@ const path = require('path');
 const pify = require('pify');
 const spawn = require('child_process').spawn;
 
-const distDir = path.join(__dirname, '..', 'dist');
+const distDir = path.join(__dirname, '..', 'dist', process.platform);
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 
 const validCommands = [ null, 'package', 'run', 'version', 'help' ];
