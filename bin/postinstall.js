@@ -16,7 +16,6 @@
 
 'use strict';
 
-const ChildProcess = require('child_process');
 const chalk = require('chalk');
 const cli = require('cli');
 const decompress = require('decompress');
@@ -28,6 +27,8 @@ const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 const plist = require('simple-plist');
+const postinstallXULApp = require('./postinstall-xulapp');
+const spawn = require('child_process').spawn;
 
 const DOWNLOAD_OS = (() => {
   switch (process.platform) {
@@ -121,15 +122,15 @@ new Promise((resolve, reject) => {
   }
   else if (process.platform === 'darwin') {
     return (new Promise((resolve, reject) => {
-      const childProcess = ChildProcess.spawn(
+      const child = spawn(
         'hdiutil',
         [ 'attach', filePath, '-mountpoint', mountPoint, '-nobrowse', '-quiet' ],
         {
           stdio: 'inherit',
         }
       );
-      childProcess.on('exit', resolve);
-      childProcess.on('error', reject);
+      child.on('exit', resolve);
+      child.on('error', reject);
     }))
     .then((exitCode) => {
       if (exitCode) {
@@ -150,15 +151,15 @@ new Promise((resolve, reject) => {
     })
     .then(() => {
       return new Promise((resolve, reject) => {
-        const childProcess = ChildProcess.spawn(
+        const child = spawn(
           'hdiutil',
           [ 'detach', mountPoint, '-quiet' ],
           {
             stdio: 'inherit',
           }
         );
-        childProcess.on('exit', resolve);
-        childProcess.on('error', reject);
+        child.on('exit', resolve);
+        child.on('error', reject);
       });
     })
     .then((exitCode) => {
@@ -178,29 +179,7 @@ new Promise((resolve, reject) => {
   }
 })
 .then(() => {
-  // Copy the qbrt xulapp to the target directory.
-
-  // TODO: move qbrt xulapp files into a separate source directory
-  // that we can copy in one fell swoop.
-
-  const sourceDir = path.join(__dirname, '..');
-  const targetDir = path.join(resourcesDir, 'qbrt');
-
-  fs.mkdirSync(targetDir);
-
-  const appFiles = [
-    'application.ini',
-    'chrome',
-    'chrome.manifest',
-    'components',
-    'defaults',
-    'devtools.manifest',
-    'modules',
-  ];
-
-  for (const file of appFiles) {
-    fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
-  }
+  return postinstallXULApp.install();
 })
 .then(() => {
   // Expand the browser xulapp's JAR archive so we can access its devtools.
