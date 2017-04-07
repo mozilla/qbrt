@@ -60,8 +60,16 @@ this.Runtime = {
     // (which could be the target itself).  Currently we support targets
     // that are <xul:browser> elements (i.e. have a outerWindowID property)
     // and those that are ChromeWindow (i.e. don't have such a property).
+    //
+    // We also distinguish between <xul:browser> elements that are
+    // type="content*" and those that are not (and therefore chrome),
+    // as the latter need their type set to "window", because:
+    // http://searchfox.org/mozilla-central/rev/fcd9f14/devtools/server/actors/webbrowser.js#329-333.
+    //
     const [type, id, appWindow] = 'outerWindowID' in target ?
+      target.getAttribute('type').startsWith('content') ?
       ['tab', target.outerWindowID, target.ownerGlobal] :
+      ['window', target.outerWindowID, target.ownerGlobal] :
       ['window', getOuterWindowID(target), target];
 
     const url = `about:devtools-toolbox?type=${type}&id=${id}`;
@@ -114,6 +122,8 @@ this.Runtime = {
     toolsWindow.addEventListener('message', onMessage);
     toolsWindow.addEventListener('load', onLoad);
     appWindow.addEventListener('close', onTargetClose);
+
+    return toolsWindow;
   },
 
 };
