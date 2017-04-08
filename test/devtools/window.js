@@ -64,5 +64,9 @@ window.addEventListener('load', event => {
   })
   .then(() => {
     Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
+  })
+  .catch(error => {
+    dump(`${error}\n`);
+    Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
   });
 });
