@@ -25,12 +25,12 @@ const tap = require('tap');
 
 let exitCode = 0;
 
-const expectedOutput = `
-Developer Tools - data:text/plain;charset=US-ASCII,browser-chrome
-Developer Tools - data:text/plain;charset=US-ASCII,browser-content-primary
-Developer Tools - data:text/plain;charset=US-ASCII,browser-content
-Developer Tools - chrome://app/content/window.xul
-`;
+const expectedOutput = [
+  'Developer Tools - data:text/plain;charset=US-ASCII,browser-chrome',
+  'Developer Tools - data:text/plain;charset=US-ASCII,browser-content-primary',
+  'Developer Tools - data:text/plain;charset=US-ASCII,browser-content',
+  'Developer Tools - chrome://app/content/window.xul',
+];
 
 
 new Promise((resolve, reject) => {
@@ -50,7 +50,10 @@ new Promise((resolve, reject) => {
   });
 
   child.on('close', code => {
-    tap.equal(totalOutput.trim(), expectedOutput.trim());
+    tap.true(totalOutput.indexOf(expectedOutput[0]) !== -1);
+    tap.true(totalOutput.indexOf(expectedOutput[1]) !== -1);
+    tap.true(totalOutput.indexOf(expectedOutput[2]) !== -1);
+    tap.true(totalOutput.indexOf(expectedOutput[3]) !== -1);
     tap.equal(code, 0, 'app exited with success code');
   });
 
