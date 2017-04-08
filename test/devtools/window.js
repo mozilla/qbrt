@@ -26,26 +26,43 @@ function sleep(n) {
   });
 }
 
-async function devToolsWindowTitle(devToolsWindow) {
-  while (devToolsWindow.document.title == '') {
-    await sleep(100);
-  }
-  dump(`${devToolsWindow.document.title}\n`);
+function dumpWindowTitle(devToolsWindow) {
+  return new Promise(resolve => {
+    function checkTitle() {
+      if (devToolsWindow.document.title == '') {
+        sleep(100).then(checkTitle);
+      }
+      else {
+        dump(`${devToolsWindow.document.title}\n`);
+        resolve();
+      }
+    }
+    checkTitle();
+  });
+}
+
+function loadWindow(target) {
+  const devToolsWindow = Runtime.openDevTools(target);
+  return dumpWindowTitle(devToolsWindow).then(() => {
+    devToolsWindow.close();
+  });
 }
 
 window.addEventListener('load', event => {
-  (async function() {
-    const targets = [
-      document.getElementById('browser-chrome'),
-      document.getElementById('browser-content-primary'),
-      document.getElementById('browser-content'),
-      window,
-    ];
-    for (const target of targets) {
-      const devToolsWindow = Runtime.openDevTools(target);
-      await devToolsWindowTitle(devToolsWindow);
-      devToolsWindow.close();
-    }
+  Promise.resolve()
+  .then(() => {
+    return loadWindow(document.getElementById('browser-chrome'));
+  })
+  .then(() => {
+    return loadWindow(document.getElementById('browser-content-primary'));
+  })
+  .then(() => {
+    return loadWindow(document.getElementById('browser-content'));
+  })
+  .then(() => {
+    return loadWindow(window);
+  })
+  .then(() => {
     Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
-  })();
-}, false);
+  });
+});
