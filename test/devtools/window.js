@@ -26,16 +26,11 @@ function sleep(n) {
   });
 }
 
-function devToolsWindowTitle(devToolsWindow) {
-  return new Promise(resolve => {
-    devToolsWindow.addEventListener('load', async () => {
-      while (devToolsWindow.document.title == '') {
-        await sleep(100);
-      }
-      dump(`${devToolsWindow.document.title}\n`);
-      resolve();
-    });
-  });
+async function devToolsWindowTitle(devToolsWindow) {
+  while (devToolsWindow.document.title == '') {
+    await sleep(100);
+  }
+  dump(`${devToolsWindow.document.title}\n`);
 }
 
 window.addEventListener('load', event => {
