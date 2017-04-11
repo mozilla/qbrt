@@ -30,7 +30,7 @@ const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 const plist = require('simple-plist');
-const postinstallXULApp = require('./postinstall-xulapp');
+const installXULApp = require('./install-xulapp');
 const spawn = require('child_process').spawn;
 
 const DOWNLOAD_OS = (() => {
@@ -184,7 +184,7 @@ function installRuntime() {
     }
   })
   .then(() => {
-    return postinstallXULApp.install();
+    return installXULApp.install();
   })
   .then(() => {
     // Expand the browser xulapp's JAR archive so we can access its devtools.
