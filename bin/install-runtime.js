@@ -269,7 +269,7 @@ if (require.main === module) {
   })
   .catch(error => {
     cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!', true);
-    console.error(`  Error: ${error}`);
+    console.error(error);
   })
   .finally(() => {
     process.exit();

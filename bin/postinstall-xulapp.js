@@ -59,6 +59,6 @@ if (require.main === module) {
   })
   .catch(error => {
     cli.spinner(chalk.red.bold('✗ ') + 'Installing XUL app… failed!', true);
-    console.error(`  Error: ${error}`);
+    console.error(error);
   });
 }

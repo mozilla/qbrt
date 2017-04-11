@@ -243,7 +243,7 @@ function packageApp() {
   })
   .catch((error) => {
     cli.spinner(chalk.red.bold('✗ ') + `Packaging ${options.path} -> ${packageFile} … failed!`, true);
-    console.error(`  Error: ${error}`);
+    console.error(error);
   })
   .finally(() => {
     return fs.remove(stageDir);
