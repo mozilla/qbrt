@@ -72,15 +72,20 @@ const fileExtensions = {
 };
 
 function installRuntime() {
-  fs.ensureDirSync(distDir);
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-`));
-  const mountPoint = path.join(tempDir, 'volume');
-
-  let filePath;
-  let fileStream;
+  let tempDir, mountPoint, filePath, fileStream;
 
   return Promise.resolve()
-  .then((response) => {
+  .then(() => {
+    return pify(fs.ensureDir)(distDir);
+  })
+  .then(() => {
+    return pify(fs.mkdtemp)(path.join(os.tmpdir(), `${packageJson.name}-`));
+  })
+  .then(tempDirArg => {
+    tempDir = tempDirArg;
+    mountPoint = path.join(tempDir, 'volume');
+  })
+  .then(() => {
     return new Promise((resolve, reject) => {
       function download(url) {
         https.get(url, function(response) {
@@ -141,7 +146,8 @@ function installRuntime() {
         if (exitCode) {
           throw new Error(`'hdiutil attach' exited with code ${exitCode}`);
         }
-
+      })
+      .then(() => {
         const source = path.join(mountPoint, 'FirefoxNightly.app');
         // Unlike Windows and Linux, where the destination is the parent dir,
         // on Mac the destination is the installation dir itself, because we've
@@ -151,8 +157,11 @@ function installRuntime() {
         // in Spotlight doesn't return this copy.
         //
         const destination = path.join(distDir, 'Runtime.app');
-        fs.removeSync(destination);
-        return fs.copySync(source, destination);
+
+        return pify(fs.remove)(destination)
+        .then(() => {
+          return pify(fs.copy)(source, destination);
+        });
       })
       .then(() => {
         return new Promise((resolve, reject) => {
@@ -176,10 +185,12 @@ function installRuntime() {
     else if (process.platform === 'linux') {
       const source = filePath;
       const destination = distDir;
-      fs.removeSync(path.join(destination, 'runtime'));
-      return decompress(source, destination)
+      return pify(fs.remove)(path.join(destination, 'runtime'))
       .then(() => {
-        fs.renameSync(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
+        return decompress(source, destination);
+      })
+      .then(() => {
+        return pify(fs.rename)(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
       });
     }
   })
@@ -212,9 +223,7 @@ function installRuntime() {
       'devtools.js',
     ];
 
-    for (const file of prefFiles) {
-      fs.copySync(path.join(sourceDir, file), path.join(targetDir, file));
-    }
+    return Promise.all(prefFiles.map(file => pify(fs.copy)(path.join(sourceDir, file), path.join(targetDir, file))));
   })
   .then(() => {
     // Copy and configure the stub executable.
@@ -222,24 +231,23 @@ function installRuntime() {
     switch (process.platform) {
       case 'win32': {
         // Copy the stub executable to the executable dir.
-        fs.copySync(path.join(__dirname, '..', 'launcher.bat'), path.join(executableDir, 'launcher.bat'));
-        break;
+        return pify(fs.copy)(path.join(__dirname, '..', 'launcher.bat'), path.join(executableDir, 'launcher.bat'));
       }
       case 'darwin': {
-        fs.copySync(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'));
-
-        // Configure the bundle to run the stub executable.
-        const plistFile = path.join(installDir, 'Contents', 'Info.plist');
-        const appPlist = plist.readFileSync(plistFile);
-        appPlist.CFBundleExecutable = 'launcher.sh';
-        plist.writeFileSync(plistFile, appPlist);
-
-        break;
+        return pify(fs.copy)(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'))
+        .then(() => {
+          // Configure the bundle to run the stub executable.
+          const plistFile = path.join(installDir, 'Contents', 'Info.plist');
+          return pify(plist.readFile)(plistFile)
+          .then(appPlist => {
+            appPlist.CFBundleExecutable = 'launcher.sh';
+            return pify(plist.writeFile)(plistFile, appPlist);
+          });
+        });
       }
       case 'linux': {
         // Copy the stub executable to the executable dir.
-        fs.copySync(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'));
-        break;
+        return pify(fs.copy)(path.join(__dirname, '..', 'launcher.sh'), path.join(executableDir, 'launcher.sh'));
       }
     }
   })
@@ -250,11 +258,7 @@ function installRuntime() {
     throw error;
   })
   .finally(() => {
-    // Clean up.  This function executes whether or not there was an error
-    // during the postinstall process, so put stuff here that should happen
-    // in both cases.
-    fs.removeSync(filePath);
-    fs.rmdirSync(tempDir);
+    return pify(fs.remove)(tempDir);
     // XXX Remove partial copy of Firefox.
   });
 }
