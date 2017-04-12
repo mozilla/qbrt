@@ -33,7 +33,7 @@ const plist = require('simple-plist');
 const installXULApp = require('./install-xulapp');
 const spawn = require('child_process').spawn;
 
-const DOWNLOAD_OS = (() => {
+const downloadOS = (() => {
   switch (process.platform) {
     case 'win32':
       switch (process.arch) {
@@ -58,14 +58,14 @@ const DOWNLOAD_OS = (() => {
   }
 })();
 
-const DOWNLOAD_URL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${DOWNLOAD_OS}`;
+const downloadURL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${downloadOS}`;
 const distDir = path.join(__dirname, '..', 'dist', process.platform);
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
 const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
 const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
 
-const FILE_EXTENSIONS = {
+const fileExtensions = {
   'application/x-apple-diskimage': 'dmg',
   'application/zip': 'zip',
   'application/x-tar': 'tar.bz2',
@@ -99,11 +99,11 @@ function installRuntime() {
           }
         }).on('error', reject);
       }
-      download(DOWNLOAD_URL);
+      download(downloadURL);
     });
   })
   .then((response) => {
-    const extension = FILE_EXTENSIONS[response.headers['content-type']];
+    const extension = fileExtensions[response.headers['content-type']];
     filePath = path.join(tempDir, `runtime.${extension}`);
     fileStream = fs.createWriteStream(filePath);
     response.pipe(fileStream);
@@ -184,7 +184,7 @@ function installRuntime() {
     }
   })
   .then(() => {
-    return installXULApp.install();
+    return installXULApp();
   })
   .then(() => {
     // Expand the browser xulapp's JAR archive so we can access its devtools.
