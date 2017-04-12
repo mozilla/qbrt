@@ -136,7 +136,12 @@ function getOuterWindowID(window) {
 }
 
 function loadMainEntryScript(mainEntryScript) {
-  const hiddenWindow = Services.appShell.hiddenWindow;
-  const hiddenDOMWindow = Services.appShell.hiddenDOMWindow;
-  Services.scriptloader.loadSubScript(mainEntryScript, hiddenDOMWindow, 'UTF-8');
+  const systemPrincipal = Cc['@mozilla.org/systemprincipal;1'].createInstance(Ci.nsIPrincipal);
+
+  const sandbox = new Cu.Sandbox(systemPrincipal, {
+    wantComponents: true,
+    sandboxPrototype: Services.appShell.hiddenDOMWindow,
+  });
+
+  Services.scriptloader.loadSubScript(mainEntryScript, sandbox, 'UTF-8');
 }
