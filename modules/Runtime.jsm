@@ -130,6 +130,15 @@ this.Runtime = {
     return toolsWindow;
   },
 
+  closeDevTools(target) {
+    // TODO: Keep an object in memory that maps windows => opened Dev Tools?
+    // Or query the active window and close the Dev Tools if it's already open?
+    // (I assume the latter. What's the best way to go about this?)
+  },
+
+  toggleDevTools(target) {
+  },
+
 };
 
 function registerChromePrefix(appDir) {
