@@ -110,7 +110,7 @@ function runApp() {
     // TODO: figure out why we need 'new-instance' for it to work.
     '-new-instance',
     '-aqq', mainEntryPoint,
-    ...options._unknown,
+    ...(options._unknown || []),
   ];
 
   if (appDir === shellDir) {
