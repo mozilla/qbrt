@@ -2,11 +2,10 @@
 ![Stability](https://img.shields.io/badge/stability-unstable-red.svg)
 ![Travis Status](https://travis-ci.org/mozilla/qbrt.svg?branch=master)
 ![TaskCluster Status](https://github.taskcluster.net/v1/badge/mozilla/qbrt/master)
+[![Greenkeeper Status](https://badges.greenkeeper.io/mozilla/qbrt.svg)](https://greenkeeper.io/)
 
 qbrt: CLI to a Gecko desktop app runtime
 ===
-
-[![Greenkeeper badge](https://badges.greenkeeper.io/mozilla/qbrt.svg)](https://greenkeeper.io/)
 
 qbrt is a command-line interface to a Gecko desktop app runtime.
 It's designed to simplify the process of building and testing desktop apps
