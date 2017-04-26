@@ -6,6 +6,8 @@
 qbrt: CLI to a Gecko desktop app runtime
 ===
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/mozilla/qbrt.svg)](https://greenkeeper.io/)
+
 qbrt is a command-line interface to a Gecko desktop app runtime.
 It's designed to simplify the process of building and testing desktop apps
 using Gecko.
