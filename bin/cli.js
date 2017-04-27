@@ -77,7 +77,7 @@ switch (command) {
 function runApp() {
   const optionDefinitions = [
     { name: 'jsdebugger', alias: 'd', type: Boolean },
-    { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: argv[0] || process.cwd() },
+    { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: process.cwd() },
     { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });

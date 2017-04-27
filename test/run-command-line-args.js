@@ -26,9 +26,7 @@ const tap = require('tap');
 let exitCode = 0;
 
 // Strangely, the runtime changes --foo to -foo on Mac/Linux but not Windows.
-const expectedOutput = process.platform === 'win32' ?
-  'console.log: ["test/app-command-line-args/","--foo","bar"]' :
-  'console.log: ["test/app-command-line-args/","-foo","bar"]';
+const expectedOutput = process.platform === 'win32' ? 'console.log: ["--foo","bar"]' : 'console.log: ["-foo","bar"]';
 
 new Promise((resolve, reject) => {
   // Paths are relative to the top-level directory in which `npm test` is run.
