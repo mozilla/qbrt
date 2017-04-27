@@ -1,18 +1,15 @@
+dist: trusty
+sudo: false
+
 language: node_js
 
 node_js:
   - "7"
   - "6"
 
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      # We don't really need sudo, but Firefox crashes on Linux when run
-      # via the launcher script on the containers we get when sudo: false.
-      # TODO: figure out the cause of that bug and disable sudo.
-      sudo: required
-    - os: osx
+os:
+  - linux
+  - osx
 
 # https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-a-GUI
 before_script:

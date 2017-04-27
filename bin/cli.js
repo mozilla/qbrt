@@ -80,7 +80,7 @@ function runApp() {
     { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: argv[0] || process.cwd() },
     { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean },
   ];
-  const options = commandLineArgs(optionDefinitions, { argv: argv });
+  const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });
 
   const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
   const executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
@@ -110,6 +110,7 @@ function runApp() {
     // TODO: figure out why we need 'new-instance' for it to work.
     '-new-instance',
     '-aqq', mainEntryPoint,
+    ...(options._unknown || []),
   ];
 
   if (appDir === shellDir) {
