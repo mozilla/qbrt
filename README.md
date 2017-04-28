@@ -2,6 +2,7 @@
 ![Stability](https://img.shields.io/badge/stability-unstable-red.svg)
 ![Travis Status](https://travis-ci.org/mozilla/qbrt.svg?branch=master)
 ![TaskCluster Status](https://github.taskcluster.net/v1/badge/mozilla/qbrt/master)
+[![Greenkeeper Status](https://badges.greenkeeper.io/mozilla/qbrt.svg)](https://greenkeeper.io/)
 
 qbrt: CLI to a Gecko desktop app runtime
 ===
