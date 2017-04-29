@@ -18,13 +18,15 @@ const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 
 window.addEventListener('load', event => {
+  dump(`window.location: ${window.location}`);
+
   const browser = document.getElementById('content');
   const url = decodeURIComponent(new URL(window.location).search.substr(1));
 
   browser.loadURI(url, null, null);
   // dump instead of console.log to write to stdout for tests.
   dump(`opened ${url} in new window\n`);
-  Runtime.openDevTools(browser);
+  // Runtime.openDevTools(browser);
 
   browser.addEventListener('keydown', event => {
     // Reload the web page when the F5 key is pressed.

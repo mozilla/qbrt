@@ -34,10 +34,13 @@ if (Services.appinfo.OS === 'Darwin') {
 const url = Runtime.commandLineArgs[0] || Runtime.packageJSON.mainURL || 'index.html';
 const shellUrl = `chrome://app/content/shell.xul?${encodeURIComponent(url)}`;
 
-// We should be able to use window.open here, but we're using the hidden window
-// as our window global object, and calling window.open on it throws:
-//   JavaScript error: …nsPrompter.js, line 350: NS_ERROR_NOT_AVAILABLE:
-//   Cannot call openModalWindow on a hidden window
-//
-// window.open(shellUrl, '_blank', windowFeatures);
-Services.ww.openWindow(null, shellUrl, '_blank', windowFeatures, null);
+// // We should be able to use window.open here, but we're using the hidden window
+// // as our window global object, and calling window.open on it throws:
+// //   JavaScript error: …nsPrompter.js, line 350: NS_ERROR_NOT_AVAILABLE:
+// //   Cannot call openModalWindow on a hidden window
+// //
+// // window.open(shellUrl, '_blank', windowFeatures);
+// Services.ww.openWindow(null, shellUrl, '_blank', windowFeatures, null);
+
+// Keep messing around with using window.open to open the window.
+window.open(shellUrl, '_blank', windowFeatures);
