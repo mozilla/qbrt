@@ -32,7 +32,7 @@ if (Services.appinfo.OS === 'Darwin') {
 }
 
 const url = Runtime.commandLineArgs[0] || Runtime.packageJSON.mainURL || 'index.html';
-const shellUrl = `chrome://app/content/shell.xul?${encodeURIComponent(url)}`;
+const shellUrl = `chrome://app/content/shell.xul`;
 
 // // We should be able to use window.open here, but we're using the hidden window
 // // as our window global object, and calling window.open on it throws:
@@ -43,4 +43,6 @@ const shellUrl = `chrome://app/content/shell.xul?${encodeURIComponent(url)}`;
 // Services.ww.openWindow(null, shellUrl, '_blank', windowFeatures, null);
 
 // Keep messing around with using window.open to open the window.
-window.open(shellUrl, '_blank', windowFeatures);
+const shell = window.open(shellUrl, '_blank', windowFeatures);
+dump(`shell: ${shell}\n`);
+shell.addEventListener('load', event => shell.loadURL(url), false);
