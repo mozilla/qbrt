@@ -79,11 +79,12 @@ function runApp() {
     { name: 'jsdebugger', alias: 'd', type: Boolean },
     { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: process.cwd() },
     { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean },
+    { name: 'debug', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });
 
   const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
-  const executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
+  let executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
   const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
   const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
@@ -124,7 +125,22 @@ function runApp() {
     executableArgs.push('-wait-for-jsdebugger');
   }
 
+  if (options.debug) {
+    executableArgs.unshift(executable, '--');
+    executable = 'lldb';
+  }
+
   const child = spawn(executable, executableArgs);
+
+  const readline = require('readline');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: '',
+  });
+  rl.on('line', input => {
+    child.stdin.write(`${input}\n`);
+  });
 
   // In theory, we should be able to specify the stdio: 'inherit' option
   // when spawning the child to forward its output to our stdout/err streams.
@@ -134,6 +150,7 @@ function runApp() {
 
   child.on('close', code => {
     fs.removeSync(profileDir);
+    rl.close();
     process.exit(code);
   });
 
