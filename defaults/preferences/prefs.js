@@ -16,6 +16,7 @@
 
 pref('browser.dom.window.dump.enabled', true);
 pref('browser.hiddenWindowChromeURL', 'chrome://qbrt/content/main.html');
+pref('browser.chromeURL', 'chrome://app/content/shell.xul');
 pref('devtools.chrome.enabled', true);
 pref('devtools.debugger.prompt-connection', false);
 pref('devtools.debugger.remote-enabled', true);
