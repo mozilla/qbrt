@@ -34,7 +34,7 @@ const spawn = require('child_process').spawn;
 const distDir = path.join(__dirname, '..', 'dist', process.platform);
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 
-const validCommands = [ null, 'package', 'run', 'version', 'help' ];
+const validCommands = [ null, 'package', 'run', 'version', 'help', 'update' ];
 let parsedCommands = {};
 
 try {
@@ -62,6 +62,9 @@ switch (command) {
     break;
   case 'help':
     displayHelp();
+    break;
+  case 'update':
+    updateRuntime();
     break;
   default:
     if (argv.includes('-v') ||
@@ -243,7 +246,7 @@ function packageApp() {
   })
   .catch((error) => {
     cli.spinner(chalk.red.bold('✗ ') + `Packaging ${options.path} -> ${packageFile} … failed!`, true);
-    console.error(`  Error: ${error}`);
+    console.error(error);
   })
   .finally(() => {
     return fs.remove(stageDir);
@@ -307,4 +310,20 @@ function displayHelp() {
 
   const usage = commandLineUsage(sections);
   console.log(usage);
+}
+
+function updateRuntime() {
+  const installRuntime = require('./install-runtime');
+  cli.spinner('  Updating runtime…');
+  installRuntime()
+  .then(() => {
+    cli.spinner(chalk.green.bold('✓ ') + 'Updating runtime… done!', true);
+  })
+  .catch(error => {
+    cli.spinner(chalk.red.bold('✗ ') + 'Updating runtime… failed!', true);
+    console.error(error);
+  })
+  .finally(() => {
+    process.exit();
+  });
 }
