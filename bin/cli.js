@@ -275,8 +275,6 @@ function displayHelp() {
     {
       header: 'Command List',
       content: [
-        { name: 'help', summary: 'Display help information about qbrt.' },
-        { name: 'version', summary: 'Display qbrt version.' },
         { name: 'run', summary: 'Runs a project (local or remote).' },
         { name: 'package', summary: 'Packages a project for distribution.' },
       ],
