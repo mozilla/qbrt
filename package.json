@@ -1,6 +1,6 @@
 {
   "name": "qbrt",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "a Mozilla runtime",
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "Apache-2.0",
