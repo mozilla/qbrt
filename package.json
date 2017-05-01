@@ -22,7 +22,7 @@
     "command-line-commands": "^2.0.0",
     "command-line-usage": "^4.0.0",
     "decompress": "^4.0.0",
-    "extract-zip": "^1.6.0",
+    "extract-zip": "^1.6.5",
     "fs-extra": "^3.0.0",
     "pify": "^2.3.0",
     "promise.prototype.finally": "^2.0.1",
