@@ -23,18 +23,21 @@ const chalk = require('chalk');
 const cli = require('cli');
 const installRuntime = require('./install-runtime');
 
+let exitCode = 0;
+
 Promise.resolve()
 .then(() => {
-  cli.spinner('  Installing runtime…');
+  cli.spinner('  Installing runtime …');
 })
 .then(installRuntime)
 .then(() => {
-  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!', true);
+  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime … done!', true);
 })
 .catch(error => {
-  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!', true);
+  exitCode = 1;
+  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime … failed!', true);
   console.error(error);
 })
 .finally(() => {
-  process.exit();
+  process.exit(exitCode);
 });

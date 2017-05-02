@@ -304,16 +304,18 @@ function displayHelp() {
 
 function updateRuntime() {
   const installRuntime = require('./install-runtime');
-  cli.spinner('  Updating runtime…');
+  let exitCode = 0;
+  cli.spinner('  Updating runtime …');
   installRuntime()
   .then(() => {
-    cli.spinner(chalk.green.bold('✓ ') + 'Updating runtime… done!', true);
+    cli.spinner(chalk.green.bold('✓ ') + 'Updating runtime … done!', true);
   })
   .catch(error => {
-    cli.spinner(chalk.red.bold('✗ ') + 'Updating runtime… failed!', true);
+    exitCode = 1;
+    cli.spinner(chalk.red.bold('✗ ') + 'Updating runtime … failed!', true);
     console.error(error);
   })
   .finally(() => {
-    process.exit();
+    process.exit(exitCode);
   });
 }

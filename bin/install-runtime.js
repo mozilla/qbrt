@@ -153,7 +153,7 @@ function installRuntime() {
         // on Mac the destination is the installation dir itself, because we've
         // already expanded the archive (DMG) and are copying the dir inside it.
         //
-        // XXX Give the destination a different name so searching for "Firefox"
+        // We give the destination a different name so searching for "Firefox"
         // in Spotlight doesn't return this copy.
         //
         const destination = path.join(distDir, 'Runtime.app');
@@ -259,23 +259,24 @@ function installRuntime() {
   })
   .finally(() => {
     return pify(fs.remove)(tempDir);
-    // XXX Remove partial copy of Firefox.
   });
 }
 
 module.exports = installRuntime;
 
 if (require.main === module) {
-  cli.spinner('  Installing runtime…');
+  let exitCode = 0;
+  cli.spinner('  Installing runtime …');
   installRuntime()
   .then(() => {
-    cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!', true);
+    cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime … done!', true);
   })
   .catch(error => {
-    cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!', true);
+    exitCode = 1;
+    cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime … failed!', true);
     console.error(error);
   })
   .finally(() => {
-    process.exit();
+    process.exit(exitCode);
   });
 }

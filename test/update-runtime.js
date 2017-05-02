@@ -42,7 +42,7 @@ new Promise((resolve, reject) => {
   });
 
   child.on('close', code => {
-    tap.equal(totalOutput, 'Updating runtime…✓ Updating runtime… done!');
+    tap.equal(totalOutput, 'Updating runtime …✓ Updating runtime … done!');
     tap.equal(code, 0, 'app exited with success code');
   });
 
