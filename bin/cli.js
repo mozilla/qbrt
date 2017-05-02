@@ -280,6 +280,7 @@ function displayHelp() {
       content: [
         { name: 'run', summary: 'Run an app.' },
         { name: 'package', summary: 'Package an app for distribution.' },
+        { name: 'update', summary: 'Update the runtime to its latest version.' },
       ],
     },
     {
