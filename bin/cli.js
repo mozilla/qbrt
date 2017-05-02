@@ -128,32 +128,26 @@ function runApp() {
     executableArgs.push('-wait-for-jsdebugger');
   }
 
+  const spawnOptions = {};
+
   if (options.debug) {
     executableArgs.unshift(executable, '--');
     executable = 'lldb';
+    spawnOptions.stdio = 'inherit';
   }
 
-  const child = spawn(executable, executableArgs);
-
-  const readline = require('readline');
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: '',
-  });
-  rl.on('line', input => {
-    child.stdin.write(`${input}\n`);
-  });
+  const child = spawn(executable, executableArgs, spawnOptions);
 
   // In theory, we should be able to specify the stdio: 'inherit' option
   // when spawning the child to forward its output to our stdout/err streams.
   // But that doesn't work on Windows in a MozillaBuild console.
-  child.stdout.on('data', data => process.stdout.write(data));
-  child.stderr.on('data', data => process.stderr.write(data));
+  if (!options.debug) {
+    child.stdout.on('data', data => process.stdout.write(data));
+    child.stderr.on('data', data => process.stderr.write(data));
+  }
 
   child.on('close', code => {
     fs.removeSync(profileDir);
-    rl.close();
     process.exit(code);
   });
 
