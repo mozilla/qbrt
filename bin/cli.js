@@ -131,8 +131,16 @@ function runApp() {
   const spawnOptions = {};
 
   if (options.debug) {
-    executableArgs.unshift(executable, '--');
-    executable = 'lldb';
+    switch (process.platform) {
+      case 'darwin':
+        executableArgs.unshift(executable, '--');
+        executable = 'lldb';
+        break;
+      case 'linux':
+        executableArgs.unshift('--args', executable);
+        executable = 'gdb';
+        break;
+    }
     spawnOptions.stdio = 'inherit';
   }
 
