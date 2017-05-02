@@ -57,16 +57,18 @@ function installXULApp() {
 module.exports = installXULApp;
 
 if (require.main === module) {
+  let exitCode = 0;
   cli.spinner('  Installing XUL app …');
   installXULApp()
   .then(() => {
     cli.spinner(chalk.green.bold('✓ ') + 'Installing XUL app … done!', true);
   })
   .catch(error => {
+    exitCode = 1;
     cli.spinner(chalk.red.bold('✗ ') + 'Installing XUL app … failed!', true);
     console.error(error);
   })
   .finally(() => {
-    process.exit();
+    process.exit(exitCode);
   });
 }

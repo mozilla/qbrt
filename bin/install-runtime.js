@@ -266,16 +266,18 @@ function installRuntime() {
 module.exports = installRuntime;
 
 if (require.main === module) {
+  let exitCode = 0;
   cli.spinner('  Installing runtime …');
   installRuntime()
   .then(() => {
     cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime … done!', true);
   })
   .catch(error => {
+    exitCode = 1;
     cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime … failed!', true);
     console.error(error);
   })
   .finally(() => {
-    process.exit();
+    process.exit(exitCode);
   });
 }
