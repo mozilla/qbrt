@@ -153,7 +153,7 @@ function installRuntime() {
         // on Mac the destination is the installation dir itself, because we've
         // already expanded the archive (DMG) and are copying the dir inside it.
         //
-        // XXX Give the destination a different name so searching for "Firefox"
+        // We give the destination a different name so searching for "Firefox"
         // in Spotlight doesn't return this copy.
         //
         const destination = path.join(distDir, 'Runtime.app');
