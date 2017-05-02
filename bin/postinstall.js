@@ -25,14 +25,14 @@ const installRuntime = require('./install-runtime');
 
 Promise.resolve()
 .then(() => {
-  cli.spinner('  Installing runtime…');
+  cli.spinner('  Installing runtime …');
 })
 .then(installRuntime)
 .then(() => {
-  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime… done!', true);
+  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime … done!', true);
 })
 .catch(error => {
-  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime… failed!', true);
+  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime … failed!', true);
   console.error(error);
 })
 .finally(() => {
