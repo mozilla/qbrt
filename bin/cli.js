@@ -79,9 +79,9 @@ switch (command) {
 
 function runApp() {
   const optionDefinitions = [
-    { name: 'jsdebugger', alias: 'd', type: Boolean },
-    { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: process.cwd() },
-    { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean },
+    { name: 'jsdebugger', type: Boolean },
+    { name: 'path', type: String, defaultOption: true, defaultValue: process.cwd() },
+    { name: 'wait-for-jsdebugger', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });
 
@@ -258,15 +258,11 @@ function displayVersion() {
 }
 
 function displayHelp() {
-  const optionDefinitions = [
-    { name: 'jsdebugger', alias: 'd', type: Boolean, group: 'run', description: 'Open the runtime toolbox, which is primarily useful for debugging the runtime itself.' },
-    { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean, group: 'run', description: 'Pause the runtime at startup until the runtime toolbox connects.' },
-  ];
-
   const sections = [
     {
       header: 'qbrt',
-      content: 'qbrt is a command-line interface to a Gecko desktop app runtime. It\'s designed to simplify the process of building and testing desktop apps using Gecko.',
+      content: 'qbrt is a command-line interface to a Gecko desktop app runtime. ' +
+               'It\'s designed to simplify the process of building and testing desktop apps using Gecko.',
     },
     {
       header: 'Synopsis',
@@ -275,30 +271,24 @@ function displayHelp() {
     {
       header: 'Command List',
       content: [
-        { name: 'help', summary: 'Display help information about qbrt.' },
-        { name: 'version', summary: 'Display qbrt version.' },
-        { name: 'run', summary: 'Runs a project (local or remote).' },
-        { name: 'package', summary: 'Packages a project for distribution.' },
+        { name: 'run', summary: 'Run an app.' },
+        { name: 'package', summary: 'Package an app for distribution.' },
+        { name: 'update', summary: 'Update the runtime to its latest version.' },
       ],
-    },
-    {
-      header: 'Run options',
-      optionList: optionDefinitions,
-      group: [ 'run' ],
     },
     {
       header: 'Examples',
       content: [
         {
-          desc: '1. Running a remote project. ',
+          desc: '1. Run an app at a URL.',
           example: '$ qbrt run https://eggtimer.org/',
         },
         {
-          desc: '2. Running a local project. ',
+          desc: '2. Run an app at a path.',
           example: '$ qbrt run path/to/my/app/',
         },
         {
-          desc: '3. Packaging an app for distribution. ',
+          desc: '3. Package an app for distribution.',
           example: '$ qbrt package path/to/my/app/',
         },
       ],

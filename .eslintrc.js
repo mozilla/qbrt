@@ -28,6 +28,7 @@ module.exports = {
     'indent': [ 'error', 2, { SwitchCase: 1 }],
     'keyword-spacing': ['error'],
     'linebreak-style': ['error', 'unix'],
+    'max-len': ['error', { code: 120 }],
     'no-console': 'off',
     'no-constant-condition': ['error', { checkLoops: false }],
     'no-empty': ['error', { allowEmptyCatch: true }],
