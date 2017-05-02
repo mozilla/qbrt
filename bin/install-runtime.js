@@ -259,7 +259,6 @@ function installRuntime() {
   })
   .finally(() => {
     return pify(fs.remove)(tempDir);
-    // XXX Remove partial copy of Firefox.
   });
 }
 
