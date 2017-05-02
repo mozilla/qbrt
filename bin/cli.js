@@ -79,9 +79,9 @@ switch (command) {
 
 function runApp() {
   const optionDefinitions = [
-    { name: 'jsdebugger', alias: 'd', type: Boolean },
-    { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: process.cwd() },
-    { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean },
+    { name: 'jsdebugger', type: Boolean },
+    { name: 'path', type: String, defaultOption: true, defaultValue: process.cwd() },
+    { name: 'wait-for-jsdebugger', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });
 
@@ -258,13 +258,6 @@ function displayVersion() {
 }
 
 function displayHelp() {
-  const optionDefinitions = [
-    { name: 'jsdebugger', alias: 'd', type: Boolean, group: 'run',
-      description: 'Open the runtime toolbox, which is primarily useful for debugging the runtime itself.' },
-    { name: 'wait-for-jsdebugger', alias: 'w', type: Boolean, group: 'run',
-      description: 'Pause the runtime at startup until the runtime toolbox connects.' },
-  ];
-
   const sections = [
     {
       header: 'qbrt',
@@ -282,11 +275,6 @@ function displayHelp() {
         { name: 'package', summary: 'Package an app for distribution.' },
         { name: 'update', summary: 'Update the runtime to its latest version.' },
       ],
-    },
-    {
-      header: 'Run options',
-      optionList: optionDefinitions,
-      group: [ 'run' ],
     },
     {
       header: 'Examples',
