@@ -19,24 +19,40 @@
 // Polyfill Promise.prototype.finally().
 require('promise.prototype.finally').shim();
 
-const chalk = require('chalk');
-const cli = require('cli');
-const installRuntime = require('./install-runtime');
+const path = require('path');
+const spawn = require('child_process').spawn;
+const tap = require('tap');
 
 let exitCode = 0;
 
-Promise.resolve()
-.then(() => {
-  cli.spinner('  Installing runtime …');
-})
-.then(installRuntime)
-.then(() => {
-  cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime … done!', true);
+new Promise((resolve, reject) => {
+  // Paths are relative to the top-level directory in which `npm test` is run.
+  const child = spawn('node', [ path.join('bin', 'cli.js'), 'update' ]);
+
+  let totalOutput = '';
+
+  child.stdout.on('data', data => {
+    const output = data.toString('utf8').trim();
+    console.log(output);
+    totalOutput += output;
+  });
+
+  child.stderr.on('data', data => {
+    console.error(data.toString('utf8').trim());
+  });
+
+  child.on('close', code => {
+    tap.equal(totalOutput, 'Updating runtime …✓ Updating runtime … done!');
+    tap.equal(code, 0, 'app exited with success code');
+  });
+
+  child.on('close', (code, signal) => {
+    resolve();
+  });
 })
 .catch(error => {
-  exitCode = 1;
-  cli.spinner(chalk.red.bold('✗ ') + 'Installing runtime … failed!', true);
   console.error(error);
+  exitCode = 1;
 })
 .finally(() => {
   process.exit(exitCode);
