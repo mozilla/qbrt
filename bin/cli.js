@@ -79,6 +79,7 @@ switch (command) {
 
 function runApp() {
   const optionDefinitions = [
+    { name: 'debug', type: Boolean },
     { name: 'jsdebugger', type: Boolean },
     { name: 'path', type: String, defaultOption: true, defaultValue: process.cwd() },
     { name: 'wait-for-jsdebugger', type: Boolean },
@@ -86,7 +87,7 @@ function runApp() {
   const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });
 
   const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
-  const executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
+  let executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
   const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
   const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
@@ -127,13 +128,35 @@ function runApp() {
     executableArgs.push('-wait-for-jsdebugger');
   }
 
-  const child = spawn(executable, executableArgs);
+  const spawnOptions = {};
+
+  if (options.debug) {
+    switch (process.platform) {
+      case 'win32':
+        console.error('The --debug option is not yet supported on Windows.');
+        process.exit(1);
+        break;
+      case 'darwin':
+        executableArgs.unshift(executable, '--');
+        executable = 'lldb';
+        break;
+      case 'linux':
+        executableArgs.unshift('--args', executable);
+        executable = 'gdb';
+        break;
+    }
+    spawnOptions.stdio = 'inherit';
+  }
+
+  const child = spawn(executable, executableArgs, spawnOptions);
 
   // In theory, we should be able to specify the stdio: 'inherit' option
   // when spawning the child to forward its output to our stdout/err streams.
   // But that doesn't work on Windows in a MozillaBuild console.
-  child.stdout.on('data', data => process.stdout.write(data));
-  child.stderr.on('data', data => process.stderr.write(data));
+  if (!options.debug) {
+    child.stdout.on('data', data => process.stdout.write(data));
+    child.stderr.on('data', data => process.stderr.write(data));
+  }
 
   child.on('close', code => {
     fs.removeSync(profileDir);
