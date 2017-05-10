@@ -16,6 +16,9 @@
 
 'use strict';
 
+// Polyfill Promise.prototype.finally().
+require('promise.prototype.finally').shim();
+
 const chalk = require('chalk');
 const cli = require('cli');
 const fs = require('fs-extra');
@@ -26,7 +29,7 @@ const distDir = path.join(__dirname, '..', 'dist', process.platform);
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
 const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
 
-exports.install = () => {
+function installXULApp() {
   // Copy the qbrt xulapp to the target directory.
 
   // TODO: move qbrt xulapp files into a separate source directory
@@ -49,16 +52,23 @@ exports.install = () => {
   .then(() => {
     return Promise.all(files.map(file => pify(fs.copy)(path.join(sourceDir, file), path.join(targetDir, file))));
   });
-};
+}
+
+module.exports = installXULApp;
 
 if (require.main === module) {
-  cli.spinner('  Installing XUL app…');
-  exports.install()
+  let exitCode = 0;
+  cli.spinner('  Installing XUL app …');
+  installXULApp()
   .then(() => {
-    cli.spinner(chalk.green.bold('✓ ') + 'Installing XUL app… done!', true);
+    cli.spinner(chalk.green.bold('✓ ') + 'Installing XUL app … done!', true);
   })
   .catch(error => {
-    cli.spinner(chalk.red.bold('✗ ') + 'Installing XUL app… failed!', true);
-    console.error(`  Error: ${error}`);
+    exitCode = 1;
+    cli.spinner(chalk.red.bold('✗ ') + 'Installing XUL app … failed!', true);
+    console.error(error);
+  })
+  .finally(() => {
+    process.exit(exitCode);
   });
 }

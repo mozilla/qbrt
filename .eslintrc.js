@@ -28,6 +28,7 @@ module.exports = {
     'indent': [ 'error', 2, { SwitchCase: 1 }],
     'keyword-spacing': ['error'],
     'linebreak-style': ['error', 'unix'],
+    'max-len': ['error', { code: 120 }],
     'no-console': 'off',
     'no-constant-condition': ['error', { checkLoops: false }],
     'no-empty': ['error', { allowEmptyCatch: true }],
@@ -43,6 +44,11 @@ module.exports = {
     // specification more obvious, so we ignore their nonuse via args: none.
     //
     'no-unused-vars': ['error', { varsIgnorePattern: 'Cc|Ci|Cr|Cu', args: 'none' }],
+
+    // We should include 'todo' in the terms list, at which point we could
+    // remove the terms list, since it defaults to ["todo", "fixme", "xxx"].
+    // But we'll need to get rid of all of the TODO comments first.
+    'no-warning-comments': ['error', { terms: ['fixme', 'xxx'] }],
 
     'quotes': ['error', 'single'],
     'quote-props': ['error', 'consistent-as-needed'],
