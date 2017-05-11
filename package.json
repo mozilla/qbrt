@@ -12,7 +12,10 @@
   "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
-    "start": "node ./bin/cli.js",
+    "start": "npm run cli",
+    "cli": "node ./bin/cli.js",
+    "cli-package": "npm run cli -- package",
+    "cli-run": "npm run cli -- run",
     "test": "eslint --ext .js,.jsm . && tap test/*.js --cov --timeout=600"
   },
   "dependencies": {
@@ -25,8 +28,11 @@
     "decompress": "^4.0.0",
     "extract-zip": "^1.6.5",
     "fs-extra": "^3.0.0",
+    "normalize-package-data": "^2.3.8",
     "pify": "^2.3.0",
     "promise.prototype.finally": "^2.0.1",
+    "read-pkg": "^2.0.0",
+    "read-pkg-up": "^2.0.0",
     "simple-plist": "^0.2.1"
   },
   "devDependencies": {
