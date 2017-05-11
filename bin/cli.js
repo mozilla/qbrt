@@ -155,7 +155,7 @@ function packageApp() {
 
   // Check `productName` first since it's often used by Electron apps.
   // TODO: ensure `appName` can be used as directory/file name.
-  const appName = appPackageJson.productName || appPackageJson.name;
+  const appName = appPackageJson.productName || appPackageJson.name || 'application';
   const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
   const packageFile = `${appName}.` + { win32: 'zip', darwin: 'dmg', linux: 'tgz' }[process.platform];
 
