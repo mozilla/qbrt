@@ -123,10 +123,10 @@ CommandLineHandler.prototype = {
       packageJsonFile.append('package.json');
       packageJSON = JSON.parse(readFile(packageJsonFile));
 
-      // This will break if packageJSON.main is a path rather than just a filename.
-      // TODO: resolve path properly.
-      let mainFile = webappDir.clone();
-      mainFile.append(packageJSON.main || 'index.js');
+      let webappDirURI = Services.io.newFileURI(webappDir);
+      let mainFileURI = Services.io.newURI(packageJSON.main || 'index.js', null, webappDirURI);
+      mainFileURI.QueryInterface(Ci.nsIFileURL);
+      let mainFile = mainFileURI.file;
       aqqPath = mainFile;
     }
 
