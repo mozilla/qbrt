@@ -387,7 +387,7 @@ function updateRuntime() {
 function readProjectMetadata(projectDir, transformer) {
   function transform(result) {
     if (typeof transformer === 'function') {
-      transformer(result);
+      result = transformer(result);
     }
     return result;
   }
@@ -405,14 +405,14 @@ function readProjectMetadata(projectDir, transformer) {
     let metadata = result.pkg;
     let packageJsonFile = result.path;
 
-    metadata = transform(result);
+    result = transform(result);
 
     // `normalizePackageData` will throw if there are any errors
     // (e.g., invalid values for `name` or `version`) in the
     // `package.json` file.
     try {
       normalizePackageData(metadata, function(warning) {
-        cli.info(`${chalk.yellow.dim('⚠ Warning')}${chalk.dim(':')} ${packageJsonFile}: ${warning}`);
+        console.info(`${chalk.yellow.dim('⚠ Warning')}${chalk.dim(':')} ${packageJsonFile}: ${warning}`);
       });
     }
     catch (error) {
