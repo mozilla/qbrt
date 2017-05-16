@@ -19,15 +19,25 @@
 // Polyfill Promise.prototype.finally().
 require('promise.prototype.finally').shim();
 
+const fs = require('fs-extra');
+const os = require('os');
 const path = require('path');
 const spawn = require('child_process').spawn;
 const tap = require('tap');
 
 let exitCode = 0;
+const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), ''));
 
 new Promise((resolve, reject) => {
+  // Copy the app to a temporary directory to avoid qbrt finding
+  // the package.json file for qbrt itself when looking for the package
+  // for the test app.
+  const sourceDir = path.join('test', 'hello-world-missing-package');
+  const destDir = path.join(tempDir, 'hello-world-missing-package');
+  fs.copySync(sourceDir, destDir);
+
   // Paths are relative to the top-level directory in which `npm test` is run.
-  const child = spawn('node', [ path.join('bin', 'cli.js'), 'run', 'test/hello-world-missing-package/' ]);
+  const child = spawn('node', [ path.join('bin', 'cli.js'), 'run', destDir ]);
 
   let totalOutput = '';
 
@@ -55,5 +65,6 @@ new Promise((resolve, reject) => {
   exitCode = 1;
 })
 .finally(() => {
+  fs.removeSync(tempDir);
   process.exit(exitCode);
 });

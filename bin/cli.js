@@ -402,6 +402,16 @@ function readProjectMetadata(projectDir, transformer) {
   }
 
   return readPkgUp({cwd: projectDir}).then(result => {
+    // If the app doesn't have a package.json file, then result.pkg will be
+    // undefined, but we assume it's defined in other parts of the codebase,
+    // so ensure that it's defined, even if it's just an empty object.
+    result.pkg = result.pkg || {};
+
+    // If the app doesn't have a package.json file, then result.path will be
+    // undefined, but we assume it's defined in other parts of the codebase,
+    // so ensure that it's defined, even if the file doesn't actually exist.
+    result.path = result.path || path.join(projectDir, 'package.json');
+
     let metadata = result.pkg;
     let packageJsonFile = result.path;
 
