@@ -97,7 +97,7 @@ function runApp() {
   const shellDir = path.join(__dirname, '..', 'shell');
   const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
 
-  cli.spinner(`  Reading package for ${appDir} …`);
+  cli.spinner(`  Reading package for ${appDir} …`, false, process.stderr);
 
   readProjectMetadata(appDir, function transformer(appPackageResult) {
     // First try `main` (Electron), then try `bin` (pkg), and finally fall back to `index.js`.
@@ -105,15 +105,15 @@ function runApp() {
     return appPackageResult;
   })
   .then(appPackageResult => {
-    cli.spinner(chalk.green.bold('✓ ') + `Reading package for ${appDir} … done!`, true);
+    cli.spinner(chalk.green.bold('✓ ') + `Reading package for ${appDir} … done!`, true, process.stderr);
     return appPackageResult;
   }, error => {
-    cli.spinner(chalk.red.bold('✗ ') + `Reading package for ${appDir} … failed!`, true);
+    cli.spinner(chalk.red.bold('✗ ') + `Reading package for ${appDir} … failed!`, true, process.stderr);
     console.error(error);
     process.exit(1);
   })
   .then(appPackageResult => {
-    const mainEntryPoint = path.join(appPackageResult.path, appPackageResult.pkg.main);
+    const mainEntryPoint = path.join(appPackageResult.path, '..', appPackageResult.pkg.main);
 
     // Args like 'app', 'new-instance', and 'profile' are handled by nsAppRunner,
     // which supports uni-dash (-foo), duo-dash (--foo), and slash (/foo) variants
@@ -412,7 +412,7 @@ function readProjectMetadata(projectDir, transformer) {
     // `package.json` file.
     try {
       normalizePackageData(metadata, function(warning) {
-        console.info(`${chalk.yellow.dim('⚠ Warning')}${chalk.dim(':')} ${packageJsonFile}: ${warning}`);
+        console.warn(`${chalk.yellow.dim('⚠ Warning')}${chalk.dim(':')} ${packageJsonFile}: ${warning}`);
       });
     }
     catch (error) {
