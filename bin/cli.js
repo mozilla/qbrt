@@ -267,8 +267,8 @@ function packageApp() {
     .then(() => {
       if (appSourceDir === shellDir) {
         const appTargetPackageJSONFile = path.join(appTargetDir, 'package.json');
-        appPackageJson.pkg.mainURL = options.path;
-        return pify(fs.writeFile)(appTargetPackageJSONFile, JSON.stringify(appPackageJson.pkg));
+        appPackageJson.mainURL = options.path;
+        return pify(fs.writeFile)(appTargetPackageJSONFile, JSON.stringify(appPackageJson));
       }
     });
   })
