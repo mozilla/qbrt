@@ -45,4 +45,4 @@ const shellUrl = `chrome://app/content/shell.xul`;
 // Keep messing around with using window.open to open the window.
 const shell = window.open(shellUrl, '_blank', windowFeatures);
 dump(`shell: ${shell}\n`);
-shell.addEventListener('load', event => shell.loadURL(url), false);
+shell.addEventListener('load', () => shell.loadURL(url), false);
