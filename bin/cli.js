@@ -97,7 +97,7 @@ function runApp() {
   const shellDir = path.join(__dirname, '..', 'shell');
   const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
 
-  cli.spinner(`  Reading package for ${appDir} …`);
+  cli.spinner(`  Reading package for ${appDir} …`, false, process.stderr);
 
   readProjectMetadata(appDir, function transformer(appPackageResult) {
     // First try `main` (Electron), then try `bin` (pkg), and finally fall back to `index.js`.
@@ -105,15 +105,15 @@ function runApp() {
     return appPackageResult;
   })
   .then(appPackageResult => {
-    cli.spinner(chalk.green.bold('✓ ') + `Reading package for ${appDir} … done!`, true);
+    cli.spinner(chalk.green.bold('✓ ') + `Reading package for ${appDir} … done!`, true, process.stderr);
     return appPackageResult;
   }, error => {
-    cli.spinner(chalk.red.bold('✗ ') + `Reading package for ${appDir} … failed!`, true);
+    cli.spinner(chalk.red.bold('✗ ') + `Reading package for ${appDir} … failed!`, true, process.stderr);
     console.error(error);
     process.exit(1);
   })
   .then(appPackageResult => {
-    const mainEntryPoint = path.join(appPackageResult.path, appPackageResult.pkg.main);
+    const mainEntryPoint = path.join(appPackageResult.path, '..', appPackageResult.pkg.main);
 
     // Args like 'app', 'new-instance', and 'profile' are handled by nsAppRunner,
     // which supports uni-dash (-foo), duo-dash (--foo), and slash (/foo) variants
@@ -267,8 +267,8 @@ function packageApp() {
     .then(() => {
       if (appSourceDir === shellDir) {
         const appTargetPackageJSONFile = path.join(appTargetDir, 'package.json');
-        appPackageJson.pkg.mainURL = options.path;
-        return pify(fs.writeFile)(appTargetPackageJSONFile, JSON.stringify(appPackageJson.pkg));
+        appPackageJson.mainURL = options.path;
+        return pify(fs.writeFile)(appTargetPackageJSONFile, JSON.stringify(appPackageJson));
       }
     });
   })
@@ -387,7 +387,7 @@ function updateRuntime() {
 function readProjectMetadata(projectDir, transformer) {
   function transform(result) {
     if (typeof transformer === 'function') {
-      transformer(result);
+      result = transformer(result);
     }
     return result;
   }
@@ -402,17 +402,27 @@ function readProjectMetadata(projectDir, transformer) {
   }
 
   return readPkgUp({cwd: projectDir}).then(result => {
+    // If the app doesn't have a package.json file, then result.pkg will be
+    // undefined, but we assume it's defined in other parts of the codebase,
+    // so ensure that it's defined, even if it's just an empty object.
+    result.pkg = result.pkg || {};
+
+    // If the app doesn't have a package.json file, then result.path will be
+    // undefined, but we assume it's defined in other parts of the codebase,
+    // so ensure that it's defined, even if the file doesn't actually exist.
+    result.path = result.path || path.join(projectDir, 'package.json');
+
     let metadata = result.pkg;
     let packageJsonFile = result.path;
 
-    metadata = transform(result);
+    result = transform(result);
 
     // `normalizePackageData` will throw if there are any errors
     // (e.g., invalid values for `name` or `version`) in the
     // `package.json` file.
     try {
       normalizePackageData(metadata, function(warning) {
-        cli.info(`${chalk.yellow.dim('⚠ Warning')}${chalk.dim(':')} ${packageJsonFile}: ${warning}`);
+        console.warn(`${chalk.yellow.dim('⚠ Warning')}${chalk.dim(':')} ${packageJsonFile}: ${warning}`);
       });
     }
     catch (error) {

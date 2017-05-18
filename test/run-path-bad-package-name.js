@@ -32,7 +32,6 @@ new Promise((resolve, reject) => {
 
   // let totalOutput = '';
   let totalError = '';
-  let quitting = false;
 
   child.stdout.on('data', data => {
     const output = data.toString('utf8');
@@ -44,18 +43,22 @@ new Promise((resolve, reject) => {
     const error = data.toString('utf8');
     console.error(error);
     totalError += error.trim();
-    if (outputRegex.test(totalError) && !quitting) {
-      child.kill('SIGINT');
-      quitting = true;
-    }
+    // if (outputRegex.test(totalError) && !quitting) {
+    //   child.kill('SIGINT');
+    //   quitting = true;
+    // }
   });
 
-  child.on('exit', code => {
+  child.on('exit', (code, signal) => {
     tap.true(outputRegex.test(totalError), 'output confirms `package.json` contains an invalid name');
-    tap.equal(code, 1, 'app exited with error code');
+    console.log(`exit code: ${code}`);
+    console.log(`exit signal: ${signal}`);
   });
 
   child.on('close', (code, signal) => {
+    console.log(`close code: ${code}`);
+    console.log(`close signal: ${signal}`);
+    tap.equal(code, 1, 'app exited with error code');
     resolve();
   });
 })
