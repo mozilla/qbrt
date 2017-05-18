@@ -97,18 +97,14 @@ function runApp() {
   const shellDir = path.join(__dirname, '..', 'shell');
   const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
 
-  cli.spinner(`  Reading package for ${appDir} …`, false, process.stderr);
-
   readProjectMetadata(appDir, function transformer(appPackageResult) {
     // First try `main` (Electron), then try `bin` (pkg), and finally fall back to `index.js`.
     appPackageResult.pkg.main = appPackageResult.pkg.main || appPackageResult.pkg.bin || 'index.js';
     return appPackageResult;
   })
   .then(appPackageResult => {
-    cli.spinner(chalk.green.bold('✓ ') + `Reading package for ${appDir} … done!`, true, process.stderr);
     return appPackageResult;
   }, error => {
-    cli.spinner(chalk.red.bold('✗ ') + `Reading package for ${appDir} … failed!`, true, process.stderr);
     console.error(error);
     process.exit(1);
   })
@@ -202,9 +198,6 @@ function packageApp() {
   let packageFile;
   let stageDir;
 
-  cli.spinner(`  Reading package for ${appSourceDir} …`);
-
-
   readProjectMetadata(appSourceDir, function transformer(appPackageResult) {
     // `productName` is a key commonly used in `package.json` files of Electron apps.
     appPackageResult.pkg.name = appPackageResult.pkg.productName || appPackageResult.pkg.name ||
@@ -212,10 +205,8 @@ function packageApp() {
     return appPackageResult;
   })
   .then(appPackageResult => {
-    cli.spinner(chalk.green.bold('✓ ') + `Reading package for ${appSourceDir} … done!`, true);
     return appPackageResult;
   }, error => {
-    cli.spinner(chalk.red.bold('✗ ') + `Reading package for ${appSourceDir} … failed!`, true);
     console.error(error);
     process.exit(1);
   })
