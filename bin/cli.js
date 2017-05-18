@@ -411,10 +411,9 @@ function readProjectMetadata(projectDir, transformer) {
     // `normalizePackageData` will throw if there are any errors
     // (e.g., invalid values for `name` or `version`) in the
     // `package.json` file.
+    // To expose warnings, pass a callback as a second argument.
     try {
-      normalizePackageData(metadata, function(warning) {
-        console.warn(`${chalk.yellow.dim('⚠ Warning')}${chalk.dim(':')} ${packageJsonFile}: ${warning}`);
-      });
+      normalizePackageData(metadata);
     }
     catch (error) {
       throw error;
