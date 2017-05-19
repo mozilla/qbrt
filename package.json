@@ -12,6 +12,7 @@
   "bin": "./bin/cli.js",
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
+    "start": "node ./bin/cli.js",
     "test": "eslint --ext .js,.jsm . && tap test/*.js --cov --timeout=600"
   },
   "dependencies": {
