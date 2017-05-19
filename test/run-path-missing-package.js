@@ -27,6 +27,7 @@ const tap = require('tap');
 
 let exitCode = 0;
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qbrt-test-'));
+console.log(`tempDir: ${tempDir}`);
 
 new Promise((resolve, reject) => {
   // Copy the app to a temporary directory to avoid qbrt finding
