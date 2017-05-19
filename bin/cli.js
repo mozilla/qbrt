@@ -404,7 +404,6 @@ function readProjectMetadata(projectDir, transformer) {
     result.path = result.path || path.join(projectDir, 'package.json');
 
     let metadata = result.pkg;
-    let packageJsonFile = result.path;
 
     result = transform(result);
 
