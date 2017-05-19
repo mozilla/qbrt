@@ -27,6 +27,7 @@ const tap = require('tap');
 
 let exitCode = 0;
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qbrt-test-'));
+console.log(`tempDir: ${tempDir}`);
 
 new Promise((resolve, reject) => {
   // Copy the app to a temporary directory to avoid qbrt finding
@@ -42,9 +43,9 @@ new Promise((resolve, reject) => {
   let totalOutput = '';
 
   child.stdout.on('data', data => {
-    const output = data.toString('utf8').trim();
-    console.log(output);
+    const output = data.toString('utf8');
     totalOutput += output;
+    console.log(output.trim());
   });
 
   child.stderr.on('data', data => {
@@ -52,7 +53,7 @@ new Promise((resolve, reject) => {
   });
 
   child.on('close', code => {
-    tap.equal(totalOutput, 'console.log: Hello, World!');
+    tap.equal(totalOutput.trim(), 'console.log: Hello, World!');
     tap.equal(code, 0, 'app exited with success code');
   });
 
