@@ -18,32 +18,30 @@ const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 
-function sleep(n) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve();
-    }, n);
-  });
-}
-
-function dumpWindowTitle(devToolsWindow) {
-  return new Promise(resolve => {
-    function checkTitle() {
-      if (devToolsWindow.document.title == '') {
-        sleep(100).then(checkTitle);
-      }
-      else {
-        dump(`${devToolsWindow.document.title}\n`);
-        resolve();
-      }
-    }
-    checkTitle();
-  });
-}
-
-function loadWindow(target) {
+function loadDevToolsWindow(target) {
   const devToolsWindow = Runtime.openDevTools(target);
-  return dumpWindowTitle(devToolsWindow).then(() => {
+  return new Promise(resolve => {
+    devToolsWindow.addEventListener('DOMContentLoaded', resolve);
+  })
+  .then(() => {
+    // Wait for the DevTools window's title to change, which indicates
+    // that the window has successfully connected to its target.
+    // We dump the window title so the test can check stdout to confirm
+    // that the correct set of windows was loaded.
+    return new Promise(resolve => {
+      const observer = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+          if (mutation.attributeName === 'title') {
+            dump(`${devToolsWindow.document.title}\n`);
+            observer.disconnect();
+            resolve();
+          }
+        }
+      });
+      observer.observe(devToolsWindow.document.querySelector('window'), { attributes: true });
+    });
+  })
+  .then(() => {
     devToolsWindow.close();
   });
 }
@@ -51,16 +49,16 @@ function loadWindow(target) {
 window.addEventListener('load', event => {
   Promise.resolve()
   .then(() => {
-    return loadWindow(document.getElementById('browser-chrome'));
+    return loadDevToolsWindow(document.getElementById('browser-chrome'));
   })
   .then(() => {
-    return loadWindow(document.getElementById('browser-content-primary'));
+    return loadDevToolsWindow(document.getElementById('browser-content-primary'));
   })
   .then(() => {
-    return loadWindow(document.getElementById('browser-content'));
+    return loadDevToolsWindow(document.getElementById('browser-content'));
   })
   .then(() => {
-    return loadWindow(window);
+    return loadDevToolsWindow(window);
   })
   .then(() => {
     Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
