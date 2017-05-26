@@ -27,6 +27,10 @@ this.Runtime = {
   get packageJSON() { return global.packageJSON },
 
   start(appFile, commandLineArgs, packageJSON) {
+    // TODO: stop assuming that appFile is in the topmost directory of the app.
+    // Instead, either traverse the path backwards until we find the package
+    // manifest, or make the caller specify the app directory in addition to
+    // the app file.
     registerChromePrefix(appFile.parent);
 
     const systemPrincipal = Cc['@mozilla.org/systemprincipal;1'].createInstance(Ci.nsIPrincipal);
