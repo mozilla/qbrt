@@ -57,6 +57,7 @@ tasks:
         - >-
           apt-get update -y &&
           apt-get install -y libgtk-3-0 libdbus-glib-1-2 xvfb &&
+          su node -c 'cd &&
           git clone {{event.head.repo.url}} repo &&
           cd repo &&
           git checkout {{event.head.sha}} &&
@@ -64,4 +65,4 @@ tasks:
           node ./bin/postinstall.js &&
           (Xvfb :2 -screen 0 1024x768x24 &) &&
           export DISPLAY=:2 &&
-          npm test
+          npm test'
