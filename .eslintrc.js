@@ -14,6 +14,7 @@ module.exports = {
     Components: false,
     document: false,
     dump: false,
+    MutationObserver: false,
     pref: false,
     window: false,
   },
