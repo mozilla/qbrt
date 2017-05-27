@@ -4,6 +4,7 @@
 # on Windows/Linux and its Contents/Resources/ subdirectory on Mac.
 
 content devtools browser/chrome/devtools/content/
+content devtools-shim browser/chrome/devtools-shim/content/
 skin devtools classic/1.0 browser/chrome/devtools/skin/
 locale devtools en-US browser/chrome/en-US/locale/en-US/devtools/client/
 locale devtools-shared en-US browser/chrome/en-US/locale/en-US/devtools/shared/
