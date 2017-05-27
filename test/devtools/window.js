@@ -42,7 +42,10 @@ function loadDevToolsWindow(target) {
     });
   })
   .then(() => {
-    devToolsWindow.close();
+    return new Promise(resolve => {
+      devToolsWindow.addEventListener('unload', resolve);
+      devToolsWindow.close();
+    })
   });
 }
 
