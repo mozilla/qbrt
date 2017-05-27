@@ -45,7 +45,7 @@ function loadDevToolsWindow(target) {
     return new Promise(resolve => {
       devToolsWindow.addEventListener('unload', resolve);
       devToolsWindow.close();
-    })
+    });
   });
 }
 
