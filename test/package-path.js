@@ -53,6 +53,7 @@ new Promise((resolve, reject) => {
 
   child.stderr.on('data', data => {
     const error = data.toString('utf8');
+    console.error('test failure due to stderr output');
     console.error(error);
     reject(error);
   });
