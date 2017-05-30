@@ -43,10 +43,6 @@ new Promise((resolve, reject) => {
     const error = data.toString('utf8');
     console.error(error);
     totalError += error.trim();
-    // if (outputRegex.test(totalError) && !quitting) {
-    //   child.kill('SIGINT');
-    //   quitting = true;
-    // }
   });
 
   child.on('exit', (code, signal) => {
