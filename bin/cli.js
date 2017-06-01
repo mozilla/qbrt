@@ -270,8 +270,9 @@ function packageApp() {
       const trashesDir = path.join(tempDir, '.Trashes');
       fs.ensureDirSync(trashesDir);
       return new Promise((resolve, reject) => {
-        // console.log('hdiutil', 'create', '-verbose', '-srcfolder', stageDir, '-srcfolder', trashesDir, packageFile);
-        const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, '-srcfolder', trashesDir, packageFile], { stdio: 'inherit' });
+        const child = spawn('hdiutil',
+                            ['create', '-srcfolder', stageDir, '-srcfolder', trashesDir, packageFile],
+                            { stdio: 'inherit' });
         child.on('exit', resolve);
         // TODO: handle errors returned by hdiutil.
       });
