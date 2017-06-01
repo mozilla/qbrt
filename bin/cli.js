@@ -196,6 +196,7 @@ function packageApp() {
   let appTargetDir;
   let appVersion;
   let packageFile;
+  let tempDir;
   let stageDir;
 
   readProjectMetadata(appSourceDir, function transformer(appPackageResult) {
@@ -222,7 +223,8 @@ function packageApp() {
   .then(appPackageJson => {
     return pify(fs.mkdtemp)(path.join(os.tmpdir(), `${appPackageJson.name}-`));
   })
-  .then(tempDir => {
+  .then(tempDirArg => {
+    tempDir = tempDirArg;
     const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
     stageDir = path.join(tempDir, stageDirName);
     appTargetDir = process.platform === 'darwin' ?
@@ -265,8 +267,11 @@ function packageApp() {
   })
   .then(() => {
     if (process.platform === 'darwin') {
+      const trashesDir = path.join(tempDir, '.Trashes');
+      fs.ensureDirSync(trashesDir);
       return new Promise((resolve, reject) => {
-        const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, packageFile]);
+        // console.log('hdiutil', 'create', '-verbose', '-srcfolder', stageDir, '-srcfolder', trashesDir, packageFile);
+        const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, '-srcfolder', trashesDir, packageFile], { stdio: 'inherit' });
         child.on('exit', resolve);
         // TODO: handle errors returned by hdiutil.
       });
