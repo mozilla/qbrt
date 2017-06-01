@@ -42,6 +42,11 @@ function loadDevToolsWindow(target) {
     });
   })
   .then(() => {
+    // Sleep for a second to work around a deadlock on Mac in CGLClearDrawable
+    // <https://bugzilla.mozilla.org/show_bug.cgi?id=1369207>.
+    return new Promise(resolve => window.setTimeout(resolve, 1000));
+  })
+  .then(() => {
     return new Promise(resolve => {
       devToolsWindow.addEventListener('unload', resolve);
       devToolsWindow.close();
@@ -49,25 +54,26 @@ function loadDevToolsWindow(target) {
   });
 }
 
-window.addEventListener('load', event => {
-  Promise.resolve()
-  .then(() => {
-    return loadDevToolsWindow(document.getElementById('browser-chrome'));
-  })
-  .then(() => {
-    return loadDevToolsWindow(document.getElementById('browser-content-primary'));
-  })
-  .then(() => {
-    return loadDevToolsWindow(document.getElementById('browser-content'));
-  })
-  .then(() => {
-    return loadDevToolsWindow(window);
-  })
-  .then(() => {
-    Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
-  })
-  .catch(error => {
-    dump(`${error}\n`);
-    Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
-  });
+const targets = [
+  document.getElementById('browser-chrome'),
+  document.getElementById('browser-content-primary'),
+  document.getElementById('browser-content'),
+  window,
+];
+
+// Wait for all targets to load but then test them serially to avoid failures
+// that seem to occur when two DevTools windows are opened at the same time
+// (TypeError: eventLoop is undefined at devtools/server/actors/script.js:545).
+Promise.all(targets.map(target => new Promise(resolve => target.addEventListener('load', resolve, true, true))))
+.then(async () => {
+  for (const target of targets) {
+    await loadDevToolsWindow(target);
+  }
+})
+.then(() => {
+  Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
+})
+.catch(error => {
+  dump(`${error}\n`);
+  Services.startup.quit(Ci.nsIAppStartup.eForceQuit);
 });

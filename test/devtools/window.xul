@@ -18,8 +18,6 @@
 <window id="main-window" windowtype="navigator:browser"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/javascript" src="window.js"/>
-
   <browser id="browser-content-primary" type="content-primary" flex="1"
            src="data:text/plain;charset=US-ASCII,browser-content-primary"/>
 
@@ -28,5 +26,7 @@
 
   <browser id="browser-chrome" type="chrome" flex="1"
            src="data:text/plain;charset=US-ASCII,browser-chrome"/>
+
+  <script type="application/javascript" src="window.js"/>
 
 </window>
