@@ -25,12 +25,14 @@ const commandLineArgs = require('command-line-args');
 const commandLineCommands = require('command-line-commands');
 const commandLineUsage = require('command-line-usage');
 const fs = require('fs-extra');
+const klaw = require('klaw');
 const os = require('os');
 const normalizePackageData = require('normalize-package-data');
 const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
 const readPkgUp = require('read-pkg-up');
+const semver = require('semver');
 const spawn = require('child_process').spawn;
 
 const distDir = path.join(__dirname, '..', 'dist', process.platform);
@@ -196,6 +198,7 @@ function packageApp() {
   let appTargetDir;
   let appVersion;
   let packageFile;
+  let tempDir;
   let stageDir;
 
   readProjectMetadata(appSourceDir, function transformer(appPackageResult) {
@@ -222,7 +225,8 @@ function packageApp() {
   .then(appPackageJson => {
     return pify(fs.mkdtemp)(path.join(os.tmpdir(), `${appPackageJson.name}-`));
   })
-  .then(tempDir => {
+  .then(tempDirArg => {
+    tempDir = tempDirArg;
     const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
     stageDir = path.join(tempDir, stageDirName);
     appTargetDir = process.platform === 'darwin' ?
@@ -265,10 +269,37 @@ function packageApp() {
   })
   .then(() => {
     if (process.platform === 'darwin') {
+      const hdiutilArgs = ['create', '-srcfolder', stageDir];
       return new Promise((resolve, reject) => {
-        const child = spawn('hdiutil', ['create', '-srcfolder', stageDir, packageFile]);
-        child.on('exit', resolve);
-        // TODO: handle errors returned by hdiutil.
+        // macOS 10.9 (Mavericks) has a bug in hdiutil that causes image
+        // creation to fail with obscure error -5341.  The problem doesn't seem
+        // to exist in earlier and later macOS versions, and the workaround
+        // causes the image to be larger than necessary (due to padding
+        // that avoids a resize), so we only do it on macOS 10.9.
+        if (semver.major(os.release()) === 13) {
+          let totalSizeInBytes = 0;
+          klaw(stageDir)
+          .on('data', item => {
+            totalSizeInBytes += item.stats.size;
+          })
+          .on('end', () => {
+            // Tests succeed with padding as low as 15MiB on my macOS 10.9 VM.
+            const size = (Math.ceil(totalSizeInBytes/1024/1024) + 15) + 'm';
+            hdiutilArgs.push('-size', size);
+            resolve();
+          });
+        }
+        else {
+          resolve();
+        }
+      })
+      .then(() => {
+        return new Promise((resolve, reject) => {
+          hdiutilArgs.push(packageFile);
+          const child = spawn('hdiutil', hdiutilArgs, { stdio: 'inherit' });
+          child.on('exit', resolve);
+          // TODO: handle errors returned by hdiutil.
+        });
       });
     }
     else if (process.platform === 'linux') {
