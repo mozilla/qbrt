@@ -17,6 +17,7 @@ module.exports = {
     MutationObserver: false,
     pref: false,
     window: false,
+    URL: false,
   },
 
   parserOptions: {

@@ -97,6 +97,7 @@ function runApp() {
   const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
 
   const shellDir = path.join(__dirname, '..', 'shell');
+  // TODO: check if options.path is a URL; if not, set it to process.cwd.
   const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
 
   readProjectMetadata(appDir, function transformer(appPackageResult) {

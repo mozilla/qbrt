@@ -18,9 +18,7 @@ const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 
-const SHELL_URL = 'chrome://app/content/shell.xul';
-
-const WINDOW_FEATURES = [
+const windowFeatures = [
   'width=640',
   'height=480',
   'resizable',
@@ -34,8 +32,17 @@ if (Services.appinfo.OS === 'Darwin') {
 }
 
 const url = Runtime.commandLineArgs[0] || Runtime.packageJSON.mainURL || 'index.html';
-const argument = Cc['@mozilla.org/supports-string;1'].createInstance(Ci.nsISupportsString);
-argument.data = url;
+const shellUrl = `chrome://app/content/shell.xul`;
 
-// TODO: report error if URL isn't found.
-Services.ww.openWindow(null, SHELL_URL, '_blank', WINDOW_FEATURES, argument);
+// // We should be able to use window.open here, but we're using the hidden window
+// // as our window global object, and calling window.open on it throws:
+// //   JavaScript error: …nsPrompter.js, line 350: NS_ERROR_NOT_AVAILABLE:
+// //   Cannot call openModalWindow on a hidden window
+// //
+// // window.open(shellUrl, '_blank', windowFeatures);
+// Services.ww.openWindow(null, shellUrl, '_blank', windowFeatures, null);
+
+// Keep messing around with using window.open to open the window.
+const shell = window.open(shellUrl, '_blank', windowFeatures);
+dump(`shell: ${shell}\n`);
+shell.addEventListener('load', () => shell.loadURL(url), false);

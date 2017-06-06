@@ -25,3 +25,5 @@ locale branding en-US chrome/en-US/locale/branding/
 # so URLs are relative to that directory, i.e. resource://qbrt/foo/bar.txt
 # references ./foo/bar.txt.
 resource qbrt ./
+
+content qbrt chrome/content/

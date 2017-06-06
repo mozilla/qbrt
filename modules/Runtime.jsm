@@ -33,16 +33,10 @@ this.Runtime = {
     // the app file.
     registerChromePrefix(appFile.parent);
 
-    const systemPrincipal = Cc['@mozilla.org/systemprincipal;1'].createInstance(Ci.nsIPrincipal);
-
-    const sandbox = new Cu.Sandbox(systemPrincipal, {
-      wantComponents: true,
-    });
-
     global.commandLineArgs = commandLineArgs;
     global.packageJSON = packageJSON;
 
-    Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
+    loadMainEntryScript(`chrome://app/content/${appFile.leafName}`);
   },
 
   openDevTools(target) {
@@ -153,4 +147,15 @@ function registerChromePrefix(appDir) {
 
 function getOuterWindowID(window) {
   return window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+}
+
+function loadMainEntryScript(mainEntryScript) {
+  const systemPrincipal = Cc['@mozilla.org/systemprincipal;1'].createInstance(Ci.nsIPrincipal);
+
+  const sandbox = new Cu.Sandbox(systemPrincipal, {
+    wantComponents: true,
+    sandboxPrototype: Services.appShell.hiddenDOMWindow,
+  });
+
+  Services.scriptloader.loadSubScript(mainEntryScript, sandbox, 'UTF-8');
 }
