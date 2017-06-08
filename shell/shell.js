@@ -113,7 +113,7 @@ const UI = {
     browser.addEventListener('keydown', event => {
       // Hard-reload the web page when the `Shift + F5` keys (or `Command + Shift + R` on Mac) are pressed.
       if (shortcuts.hardReloadPage(event)) {
-        browser.reload(true);
+        browser.webNavigation.reload(Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_CACHE);
         return;
       }
 
