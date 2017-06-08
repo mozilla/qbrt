@@ -75,7 +75,6 @@ const UI = {
     const browser = document.getElementById('content');
     const url = window.arguments[0];
     const shortcuts = new Shortcuts();
-    let toolsWindow;
 
     // Focus the browser window when the application is opened.
     browser.focus();
@@ -96,18 +95,10 @@ const UI = {
       }
     };
 
-    const onToolsUnload = () => {
+    const onToolsUnload = event => {
       dump('onToolsUnload\n');
+      const toolsWindow = event.target;
       toolsWindow.removeEventListener('keydown', onToolsKeydown);
-      // Nullify our persistent reference to the current tools window,
-      // so toggling a second DevTools window will close it.
-      toolsWindow = null;
-    };
-
-    const onToolsLoad = () => {
-      dump('onToolsLoad\n');
-      toolsWindow.addEventListener('keydown', onToolsKeydown);
-      toolsWindow.addEventListener('unload', onToolsUnload);
     };
 
     browser.addEventListener('keydown', event => {
@@ -124,17 +115,10 @@ const UI = {
       }
 
       if (shortcuts.toggleDevTools(event)) {
+        const toolsWindow = Runtime.toggleDevTools(browser);
         if (toolsWindow) {
-          const openedDevTools = Runtime.toggleDevTools(browser);
-          if (openedDevTools) {
-            // TODO: should we be handling this in `Runtime.jsm` instead?
-            toolsWindow.addEventListener('load', onToolsLoad);
-          }
-          // TODO: handle when DevTools are destroyed.
-        }
-        else {
-          toolsWindow = Runtime.openDevTools(browser);
-          toolsWindow.addEventListener('load', onToolsLoad);
+          toolsWindow.addEventListener('keydown', onToolsKeydown);
+          toolsWindow.addEventListener('unload', onToolsUnload, { once: true });
         }
       }
     }, false, true);
