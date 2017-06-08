@@ -23,11 +23,12 @@ function Shortcuts() {
   this.keys = {
     i: 73,
     r: 82,
-    f5: 116
+    f5: 116,
   };
 }
 Shortcuts.prototype.reloadPage = function(event) {
-  dump(`reloadPage ${this.isMac} ${event.metaKey} ${event.ctrlKey} ${event.keyCode === this.keys.r} ${event.keyCode}\n`);
+  dump(`reloadPage ${this.isMac} ${event.metaKey} ${event.ctrlKey} ` +
+       `${event.keyCode === this.keys.r} ${event.keyCode}\n`);
   if (this.isMac) {
     // `Cmd + R` or `F5`.
     return (event.metaKey && event.keyCode === this.keys.r) || event.keyCode === this.keys.f5;
@@ -39,7 +40,8 @@ Shortcuts.prototype.hardReloadPage = function(event) {
   if (!event.shiftKey) {
     return false;
   }
-  dump(`hardReloadPage ${this.isMac} ${event.shiftKey} ${event.metaKey} ${event.ctrlKey} ${event.keyCode === this.keys.r} ${event.keyCode}\n`);
+  dump(`hardReloadPage ${this.isMac} ${event.shiftKey} ${event.metaKey} ` +
+       `${event.ctrlKey} ${event.keyCode === this.keys.r} ${event.keyCode}\n`);
   if (this.isMac) {
     // `Cmd + R` or `F5`.
     return (event.metaKey && event.keyCode === this.keys.r) || event.keyCode === this.keys.f5;
@@ -48,7 +50,8 @@ Shortcuts.prototype.hardReloadPage = function(event) {
   return event.ctrlKey && event.keyCode === this.keys.r;
 };
 Shortcuts.prototype.toggleDevTools = function(event) {
-  dump(`openDevTools ${this.isMac} ${event.metaKey} ${event.altKey} ${event.keyCode === this.keys.i}\n`);
+  dump(`openDevTools ${this.isMac} ${event.metaKey} ${event.altKey} ` +
+       `${event.keyCode === this.keys.i}\n`);
   if (this.isMac) {
     // `Cmd + Alt + I`.
     return event.metaKey && event.altKey && event.keyCode === this.keys.i;
@@ -83,7 +86,7 @@ const UI = {
     dump(`opened ${url} in new window\n`);
 
     const onToolsKeydown = event => {
-      dump(`onToolsKeydown\n`);
+      dump('onToolsKeydown\n');
       // TODO: make this DRY, so we're not repeating ourselves below.
       if (shortcuts.hardReloadPage(event)) {
         browser.reload(true);
@@ -92,18 +95,18 @@ const UI = {
         browser.reload();
       }
       if (shortcuts.toggleDevTools(event)) {
-        dump(`onToolsKeydown [shortcut OK]\n`);
+        dump('onToolsKeydown [shortcut OK]\n');
         Runtime.toggleDevTools(browser);
       }
     };
 
     const onToolsUnload = () => {
-      dump(`onToolsUnload\n`);
+      dump('onToolsUnload\n');
       toolsWindow.removeEventListener('keydown', onToolsKeydown);
     };
 
     const onToolsLoad = () => {
-      dump(`onToolsLoad\n`);
+      dump('onToolsLoad\n');
       toolsWindow.addEventListener('keydown', onToolsKeydown);
       toolsWindow.removeEventListener('unload', onToolsUnload);
     };
@@ -125,7 +128,7 @@ const UI = {
         if (toolsWindow) {
           const openedDevTools = Runtime.toggleDevTools(browser);
           if (openedDevTools) {
-            // XXX: should we be handling this in `Runtime.jsm` instead?
+            // TODO: should we be handling this in `Runtime.jsm` instead?
             toolsWindow.addEventListener('load', onToolsLoad);
           }
           // TODO: handle when DevTools are destroyed.

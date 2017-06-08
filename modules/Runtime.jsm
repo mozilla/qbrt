@@ -150,7 +150,7 @@ this.Runtime = {
       return this.closeDevTools(target);
     }
 
-    // XXX: should we be calling `toolsWindow.open` instead of `this.openDevTools`?
+    // TODO: should we be calling `toolsWindow.open` instead of `this.openDevTools`?
 
     return this.openDevTools(target);
   },
