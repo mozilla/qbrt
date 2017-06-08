@@ -87,13 +87,9 @@ const UI = {
 
     const onToolsKeydown = event => {
       dump('onToolsKeydown\n');
+      // NB: the DevTools window handles its own reload key events,
+      // so we don't need to handle them ourselves.
       // TODO: make this DRY, so we're not repeating ourselves below.
-      if (shortcuts.hardReloadPage(event)) {
-        browser.reload(true);
-      }
-      if (shortcuts.reloadPage(event)) {
-        browser.reload();
-      }
       if (shortcuts.toggleDevTools(event)) {
         dump('onToolsKeydown [shortcut OK]\n');
         Runtime.toggleDevTools(browser);
@@ -103,12 +99,15 @@ const UI = {
     const onToolsUnload = () => {
       dump('onToolsUnload\n');
       toolsWindow.removeEventListener('keydown', onToolsKeydown);
+      // Nullify our persistent reference to the current tools window,
+      // so toggling a second DevTools window will close it.
+      toolsWindow = null;
     };
 
     const onToolsLoad = () => {
       dump('onToolsLoad\n');
       toolsWindow.addEventListener('keydown', onToolsKeydown);
-      toolsWindow.removeEventListener('unload', onToolsUnload);
+      toolsWindow.addEventListener('unload', onToolsUnload);
     };
 
     browser.addEventListener('keydown', event => {

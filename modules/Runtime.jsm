@@ -146,7 +146,7 @@ this.Runtime = {
   },
 
   toggleDevTools(target) {
-    if (global.devToolsActive.has(target)) {
+    if (global.devToolsOpened.has(target)) {
       return this.closeDevTools(target);
     }
 
