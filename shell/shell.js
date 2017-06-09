@@ -18,81 +18,79 @@ const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 
-console = {
-  log: function (msg) {
-    dump(msg + '\n');
-  }
-};
-
-function Shortcuts() {
-  this.isMac = Services.appinfo.OS === 'Darwin';
-  this.keys = {
+let Accelerators = {
+  isMac: Services.appinfo.OS === 'Darwin',
+  keys: {
     i: 73,
     r: 82,
     f5: 116,
-  };
-}
-Shortcuts.prototype.reloadPage = function(event) {
-  if (this.isMac) {
-    // `Cmd + R`.
-    const cmdR = event.metaKey && event.keyCode === this.keys.r;
-    if (cmdR) {
-      console.log('`Cmd + R`');
-    }
-    // `F5`.
+  },
+  Reload: function(event) {
     const f5 = event.keyCode === this.keys.f5;
     if (f5) {
-      console.log('`F5`');
+      return true;
     }
-    return cmdR || f5;
-  }
-  // `Ctrl + Shift + R`.
-  const ctrlShiftR = event.ctrlKey && event.keyCode === this.keys.r;
-  if (ctrlShiftR) {
-    console.log('`Ctrl + Shift + R`');
-  }
-  return ctrlShiftR;
-};
-Shortcuts.prototype.hardReloadPage = function(event) {
-  // `Shift + F5`.
-  const shiftF5 = event.shiftKey && event.keyCode === this.keys.f5;
-  if (shiftF5) {
-    console.log(`F5`);
-    return true;
-  }
-  if (this.isMac) {
-    // `Cmd + Shift + R`.
-    const cmdShiftR = event.metaKey && event.shiftKey && event.keyCode === this.keys.r;
-    if (cmdShiftR) {
-      console.log(`Cmd + Shift + R`);
+    if (this.isMac) {
+      // `Cmd + R`.
+      const cmdR = event.metaKey && event.keyCode === this.keys.r;
+      return cmdR;
     }
-    return cmdShiftR;
-  }
-  // `Ctrl + Shift + R`.
-  const ctrlShiftR = event.ctrlKey && event.shiftKey && event.keyCode === this.keys.r;
-  if (ctrlShiftR) {
-    console.log(`Ctrl + Shift + R`);
-  }
-  return ctrlShiftR;
-};
-Shortcuts.prototype.toggleDevTools = function(event) {
-  if (this.isMac) {
-    // `Cmd + Alt + I`.
-    const cmdAltI = event.metaKey && event.altKey && event.keyCode === this.keys.i;
-    if (cmdAltI) {
-      console.log(`Ctrl + Shift + I`);
+    // `Ctrl + Shift + R`.
+    const ctrlShiftR = event.ctrlKey && event.keyCode === this.keys.r;
+    return ctrlShiftR;
+  },
+  HardReload: function(event) {
+    // `Shift + F5`.
+    const shiftF5 = event.shiftKey && event.keyCode === this.keys.f5;
+    if (shiftF5) {
+      return true;
     }
-    return cmdAltI;
-  }
-  // `Ctrl + Shift + I`.
-  const ctrlShiftI = event.ctrlKey && event.shiftKey && event.keyCode === this.keys.i;
-  if (ctrlShiftI) {
-    console.log(`Ctrl + Shift + I`);
-  }
-  return ctrlShiftI;
+    if (this.isMac) {
+      // `Cmd + Shift + R`.
+      const cmdShiftR = event.metaKey && event.shiftKey &&
+        event.keyCode === this.keys.r;
+      return cmdShiftR;
+    }
+    // `Ctrl + Shift + R`.
+    const ctrlShiftR = event.ctrlKey && event.shiftKey &&
+      event.keyCode === this.keys.r;
+    return ctrlShiftR;
+  },
+  ToggleDevTools: function(event) {
+    if (this.isMac) {
+      // `Cmd + Alt + I`.
+      const cmdAltI = event.metaKey && event.altKey &&
+        event.keyCode === this.keys.i;
+      return cmdAltI;
+    }
+    // `Ctrl + Shift + I`.
+    const ctrlShiftI = event.ctrlKey && event.shiftKey &&
+      event.keyCode === this.keys.i;
+    return ctrlShiftI;
+  },
 };
-Shortcuts.prototype.openDevTools = Shortcuts.prototype.toggleDevTools;
-Shortcuts.prototype.closeDevTools = Shortcuts.prototype.toggleDevTools;
+
+function Shortcuts() {
+  this.accelerators = Accelerators;
+  this.registered = [];
+}
+Shortcuts.prototype.register = function(acceleratorName, callback) {
+  this.registered.push([acceleratorName, callback]);
+};
+Shortcuts.prototype.testEvent = function(event, acceleratorName) {
+  if (!(acceleratorName in this.accelerators)) {
+    return false;
+  }
+  return this.accelerators[acceleratorName](event);
+};
+Shortcuts.prototype.handleEvent = function(event) {
+  for (let idx = 0; idx < this.registered.length; idx++) {
+    let [ acceleratorName, callback ] = this.registered[idx];
+    if (this.testEvent(event, acceleratorName)) {
+      callback();
+    }
+  }
+};
 
 window.addEventListener('load', () => {
   UI.init();
@@ -104,9 +102,9 @@ window.addEventListener('unload', () => {
 
 const UI = {
   init: () => {
-    const browser = document.getElementById('content');
-    const url = window.arguments[0];
-    const shortcuts = new Shortcuts();
+    const browser = UI.browser = document.getElementById('content');
+    const url = UI.url = window.arguments[0];
+    const shortcuts = UI.shortcuts = new Shortcuts();
 
     // Focus the browser window when the application is opened.
     browser.focus();
@@ -116,53 +114,55 @@ const UI = {
     // Dump instead of log to write to stdout for tests.
     dump(`opened ${url} in new window\n`);
 
+    // Hard-reload the web page.
+    // Windows/Linux: `Shift + F5` or `Ctrl + Shift + R`.
+    // Mac:           `Shift + F5` or `Cmd + Shift + R`.
+    shortcuts.register('HardReload', () => {
+      // Bypass proxy and cache.
+      const reloadFlags = Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_PROXY |
+        Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_CACHE;
+      browser.webNavigation.reload(reloadFlags);
+    });
+
+    // Reload the web page.
+    // Windows/Linux: `F5` or `Ctrl + R`.
+    // Mac:           `F5` or `Cmd + R`.
+    shortcuts.register('Reload', () => {
+      browser.reload();
+    });
+
+    // Toggle the DevTools.
+    // Windows/Linux: `Ctrl + Shift + I`.
+    // Mac:           `Cmd + Shift + I`.
+    shortcuts.register('ToggleDevTools', () => {
+      const toolsWindow = Runtime.toggleDevTools(browser);
+      if (toolsWindow) {
+        // DevTools window was created for the first time.
+        toolsWindow.addEventListener('keydown', onToolsKeydown);
+        toolsWindow.addEventListener('unload', onToolsUnload, { once: true });
+      }
+    });
     const onToolsKeydown = event => {
       // NB: the DevTools window handles its own reload key events,
       // so we don't need to handle them ourselves.
       // TODO: make this DRY, so we're not repeating ourselves below.
-      if (shortcuts.toggleDevTools(event)) {
-        console.log('[devtools] toggle DevTools upon keydown');
+      if (shortcuts.testEvent(event, 'ToggleDevTools')) {
         Runtime.toggleDevTools(browser);
       }
     };
-
     const onToolsUnload = event => {
-      console.log('[devtools] unload');
       const toolsWindow = event.target;
       toolsWindow.removeEventListener('keydown', onToolsKeydown);
     };
 
+    // Handle browser-level keyboard shortcuts.
     browser.addEventListener('keydown', event => {
-      // Hard-reload the web page.
-      // Windows/Linux: `F5` or `Ctrl + Shift + R`.
-      // Mac:           `F5` or `Cmd + Shift + R`.
-      if (shortcuts.hardReloadPage(event)) {
-        // Bypass proxy and cache.
-        const reloadFlags = Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_PROXY | Ci.nsIWebNavigation.LOAD_FLAGS_BYPASS_CACHE;
-        browser.webNavigation.reload(reloadFlags);
-        return;
-      }
-
-      // Reload the web page.
-      // Windows/Linux: `F5` or `Ctrl + R`.
-      // Mac:           `F5` or `Command + R`.
-      if (shortcuts.reloadPage(event)) {
-        browser.reload();
-        return;
-      }
-
-      if (shortcuts.toggleDevTools(event)) {
-        const toolsWindow = Runtime.toggleDevTools(browser);
-        if (toolsWindow) {
-          console.log('`toolsWindow` created');
-          // DevTools window was created for the first time.
-          toolsWindow.addEventListener('keydown', onToolsKeydown);
-          toolsWindow.addEventListener('unload', onToolsUnload, { once: true });
-        }
-      }
+      shortcuts.handleEvent(event);
     }, false, true);
   },
 
   destroy: () => {
+    UI.browser.removeEventListener('keydown', UI.shortcuts.handleEvent,
+      false, true);
   },
 };
