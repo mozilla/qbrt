@@ -9,6 +9,7 @@ const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 
 const WINDOW_URL = 'chrome://app/content/index.html';
+const SHELL_URL = 'chrome://app/content/shell.xul';
 
 const WINDOW_FEATURES = [
   'chrome',
@@ -24,7 +25,10 @@ if (Services.appinfo.OS === 'Darwin') {
   Cc['@mozilla.org/widget/macdocksupport;1'].getService(Ci.nsIMacDockSupport).activateApplication(true);
 }
 
-console.log('Hello, World!');
+const argument = Cc['@mozilla.org/supports-string;1'].createInstance(Ci.nsISupportsString);
+argument.data = WINDOW_URL;
 
-const window = Services.ww.openWindow(null, WINDOW_URL, '_blank', WINDOW_FEATURES, null);
+// TODO: report error if URL isn't found.
+const window = Services.ww.openWindow(null, SHELL_URL, '_blank', WINDOW_FEATURES, argument);
 Runtime.openDevTools(window);
+console.log('main.js loaded!');

@@ -67,3 +67,6 @@ typings/
 *.dmg
 *.tgz
 *.zip
+
+# vim swap files
+*.sw*
