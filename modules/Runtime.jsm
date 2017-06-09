@@ -141,16 +141,12 @@ this.Runtime = {
     if (toolsWindow) {
       toolsWindow.close();
     }
-
-    // return toolsWindow;
   },
 
   toggleDevTools(target) {
     if (global.devToolsOpened.has(target)) {
       return this.closeDevTools(target);
     }
-
-    // TODO: should we be calling `toolsWindow.open` instead of `this.openDevTools`?
 
     return this.openDevTools(target);
   },
