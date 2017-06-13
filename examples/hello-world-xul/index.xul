@@ -6,5 +6,5 @@
         windowtype="navigator:browser"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <label value="Hello, World!"/>
-  <script src="app.js"></script>
+  <script src="app.js"/>
 </window>
