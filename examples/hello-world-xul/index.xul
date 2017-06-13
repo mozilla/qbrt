@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<!-- Any copyright is dedicated to the Public Domain.
+   - http://creativecommons.org/publicdomain/zero/1.0/ -->
+
+<window id="main-window"
+        windowtype="navigator:browser"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <label value="Hello, World!"/>
+  <script src="app.js"/>
+</window>
