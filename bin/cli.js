@@ -27,13 +27,12 @@ const commandLineUsage = require('command-line-usage');
 const fs = require('fs-extra');
 const klaw = require('klaw');
 const os = require('os');
-const normalizePackageData = require('normalize-package-data');
 const packageJson = require('../package.json');
 const path = require('path');
 const pify = require('pify');
-const readPkgUp = require('read-pkg-up');
 const semver = require('semver');
 const spawn = require('child_process').spawn;
+const util = require('../lib/util');
 
 const distDir = path.join(__dirname, '..', 'dist', process.platform);
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
@@ -96,7 +95,7 @@ function packageApp() {
   let tempDir;
   let stageDir;
 
-  readProjectMetadata(appSourceDir, function transformer(appPackageResult) {
+  util.readProjectMetadata(appSourceDir, function transformer(appPackageResult) {
     // `productName` is a key commonly used in `package.json` files of Electron apps.
     appPackageResult.pkg.name = appPackageResult.pkg.productName || appPackageResult.pkg.name ||
       path.basename(appSourceDir);
@@ -301,55 +300,3 @@ function updateRuntime() {
   });
 }
 
-function readProjectMetadata(projectDir, transformer) {
-  function transform(result) {
-    if (typeof transformer === 'function') {
-      result = transformer(result);
-    }
-    return result;
-  }
-
-  function removeUnused(metadata) {
-    // Remove unneeded keys that were added by `normalize-package-data`.
-    delete metadata._id;
-    if (metadata.readme === 'ERROR: No README data found!') {
-      delete metadata.readme;
-    }
-    return metadata;
-  }
-
-  return readPkgUp({cwd: projectDir}).then(result => {
-    // If the app doesn't have a package.json file, then result.pkg will be
-    // undefined, but we assume it's defined in other parts of the codebase,
-    // so ensure that it's defined, even if it's just an empty object.
-    result.pkg = result.pkg || {};
-
-    // If the app doesn't have a package.json file, then result.path will be
-    // undefined, but we assume it's defined in other parts of the codebase,
-    // so ensure that it's defined, even if the file doesn't actually exist.
-    result.path = result.path || path.join(projectDir, 'package.json');
-
-    let metadata = result.pkg;
-
-    result = transform(result);
-
-    // `normalizePackageData` will throw if there are any errors
-    // (e.g., invalid values for `name` or `version`) in the
-    // `package.json` file.
-    // To expose warnings, pass a callback as a second argument.
-    try {
-      normalizePackageData(metadata);
-    }
-    catch (error) {
-      throw error;
-    }
-
-    result.pkg = removeUnused(metadata);
-
-    return result;
-  })
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
-}
