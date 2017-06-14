@@ -62,7 +62,7 @@ switch (command) {
     packageApp();
     break;
   case 'run':
-    runApp();
+    require('../lib/run').runApp(argv);
     break;
   case 'help':
     displayHelp();
@@ -79,111 +79,6 @@ switch (command) {
     }
     displayHelp();
     break;
-}
-
-function runApp() {
-  const optionDefinitions = [
-    { name: 'debug', type: Boolean },
-    { name: 'jsdebugger', type: Boolean },
-    { name: 'path', type: String, defaultOption: true, defaultValue: process.cwd() },
-    { name: 'wait-for-jsdebugger', type: Boolean },
-  ];
-  const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });
-
-  const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
-  let executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
-  const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
-  const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
-  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), `${packageJson.name}-profile-`));
-
-  const shellDir = path.join(__dirname, '..', 'shell');
-  const appDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
-
-  readProjectMetadata(appDir, function transformer(appPackageResult) {
-    // First try `main` (Electron), then try `bin` (pkg), and finally fall back to `index.js`.
-    appPackageResult.pkg.main = appPackageResult.pkg.main || appPackageResult.pkg.bin || 'index.js';
-    return appPackageResult;
-  })
-  .then(appPackageResult => {
-    return appPackageResult;
-  }, error => {
-    console.error(error);
-    process.exit(1);
-  })
-  .then(appPackageResult => {
-    const mainEntryPoint = path.join(appPackageResult.path, '..', appPackageResult.pkg.main);
-
-    // Args like 'app', 'new-instance', and 'profile' are handled by nsAppRunner,
-    // which supports uni-dash (-foo), duo-dash (--foo), and slash (/foo) variants
-    // (the latter only on Windows).
-    //
-    // But args like 'aqq' and 'jsdebugger' are handled by nsCommandLine methods,
-    // which don't support duo-dash arguments on Windows. So, for maximal
-    // compatibility (and minimal complexity, modulo this over-long explanation),
-    // we always pass uni-dash args to the runtime.
-    //
-    // Per nsBrowserApp, the 'app' flag always needs to be the first in the list.
-
-    let executableArgs = [
-      '-app', applicationIni,
-      '-profile', profileDir,
-      // TODO: figure out why we need 'new-instance' for it to work.
-      '-new-instance',
-      '-aqq', mainEntryPoint,
-      ...(options._unknown || []),
-    ];
-
-    if (appDir === shellDir) {
-      executableArgs.push(options.path);
-    }
-
-    if (options.jsdebugger) {
-      executableArgs.push('-jsdebugger');
-    }
-    if (options['wait-for-jsdebugger']) {
-      executableArgs.push('-wait-for-jsdebugger');
-    }
-
-    const spawnOptions = {};
-
-    if (options.debug) {
-      switch (process.platform) {
-        case 'win32':
-          console.error('The --debug option is not yet supported on Windows.');
-          process.exit(1);
-          break;
-        case 'darwin':
-          executableArgs.unshift(executable, '--');
-          executable = 'lldb';
-          break;
-        case 'linux':
-          executableArgs.unshift('--args', executable);
-          executable = 'gdb';
-          break;
-      }
-      spawnOptions.stdio = 'inherit';
-    }
-
-    const child = spawn(executable, executableArgs, spawnOptions);
-    // In theory, we should be able to specify the stdio: 'inherit' option
-    // when spawning the child to forward its output to our stdout/err streams.
-    // But that doesn't work on Windows in a MozillaBuild console.
-    if (!options.debug) {
-      child.stdout.on('data', data => process.stdout.write(data));
-      child.stderr.on('data', data => process.stderr.write(data));
-    }
-
-    child.on('close', code => {
-      fs.removeSync(profileDir);
-      process.exit(code);
-    });
-
-    process.on('SIGINT', () => {
-      // If we get a SIGINT, then kill our child process.  Tests send us
-      // this signal, as might the user from a terminal window invocation.
-      child.kill('SIGINT');
-    });
-  });
 }
 
 function packageApp() {
