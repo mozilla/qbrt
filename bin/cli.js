@@ -118,10 +118,12 @@ function displayHelp() {
 }
 
 function updateRuntime() {
-  const installRuntime = require('./install-runtime');
   let exitCode = 0;
-  cli.spinner('  Updating runtime …');
-  installRuntime()
+  Promise.resolve()
+  .then(() => {
+    cli.spinner('  Updating runtime …');
+  })
+  .then(require('../lib/runtime').update)
   .then(() => {
     cli.spinner(chalk.green.bold('✓ ') + 'Updating runtime … done!', true);
   })
@@ -134,4 +136,3 @@ function updateRuntime() {
     process.exit(exitCode);
   });
 }
-

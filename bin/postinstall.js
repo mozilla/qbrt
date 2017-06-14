@@ -21,7 +21,7 @@ require('promise.prototype.finally').shim();
 
 const chalk = require('chalk');
 const cli = require('cli');
-const installRuntime = require('./install-runtime');
+const runtime = require('../lib/runtime');
 
 let exitCode = 0;
 
@@ -29,7 +29,7 @@ Promise.resolve()
 .then(() => {
   cli.spinner('  Installing runtime …');
 })
-.then(installRuntime)
+.then(runtime.update)
 .then(() => {
   cli.spinner(chalk.green.bold('✓ ') + 'Installing runtime … done!', true);
 })
