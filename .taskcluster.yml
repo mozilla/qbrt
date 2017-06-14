@@ -48,6 +48,8 @@ tasks:
           - push
           - release
     payload:
+      env:
+        MOZ_HEADLESS: 1
       maxRunTime: 3600
       image: 'node:6'
       command:
@@ -63,6 +65,4 @@ tasks:
           git checkout {{event.head.sha}} &&
           npm install . &&
           node ./bin/postinstall.js &&
-          (Xvfb :2 -screen 0 1024x768x24 &) &&
-          export DISPLAY=:2 &&
           npm test'
