@@ -19,8 +19,6 @@
 // Polyfill Promise.prototype.finally().
 require('promise.prototype.finally').shim();
 
-const chalk = require('chalk');
-const cli = require('cli');
 const commandLineCommands = require('command-line-commands');
 const commandLineUsage = require('command-line-usage');
 const packageJson = require('../package.json');
@@ -55,7 +53,7 @@ switch (command) {
     displayHelp();
     break;
   case 'update':
-    updateRuntime();
+    require('../lib/runtime').updateCommand();
     break;
   default:
     if (argv.includes('-v') ||
@@ -115,24 +113,4 @@ function displayHelp() {
 
   const usage = commandLineUsage(sections);
   console.log(usage);
-}
-
-function updateRuntime() {
-  let exitCode = 0;
-  Promise.resolve()
-  .then(() => {
-    cli.spinner('  Updating runtime …');
-  })
-  .then(require('../lib/runtime').update)
-  .then(() => {
-    cli.spinner(chalk.green.bold('✓ ') + 'Updating runtime … done!', true);
-  })
-  .catch(error => {
-    exitCode = 1;
-    cli.spinner(chalk.red.bold('✗ ') + 'Updating runtime … failed!', true);
-    console.error(error);
-  })
-  .finally(() => {
-    process.exit(exitCode);
-  });
 }
