@@ -47,13 +47,13 @@ switch (command) {
     require('../lib/package')(argv);
     break;
   case 'run':
-    require('../lib/run').runApp(argv);
+    require('../lib/run')(argv);
     break;
   case 'help':
     displayHelp();
     break;
   case 'update':
-    require('../lib/runtime').updateCommand();
+    require('../lib/update')();
     break;
   default:
     if (argv.includes('-v') ||
