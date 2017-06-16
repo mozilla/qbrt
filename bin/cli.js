@@ -23,7 +23,7 @@ const commandLineCommands = require('command-line-commands');
 const commandLineUsage = require('command-line-usage');
 const packageJson = require('../package.json');
 
-const validCommands = [ null, 'package', 'run', 'version', 'help', 'update' ];
+const validCommands = [ null, 'package', 'run', 'version', 'help', 'update', 'install-xulapp' ];
 let parsedCommands = {};
 
 try {
@@ -54,6 +54,9 @@ switch (command) {
     break;
   case 'update':
     require('../lib/update')();
+    break;
+  case 'install-xulapp':
+    require('../lib/install-xulapp')();
     break;
   default:
     if (argv.includes('-v') ||
