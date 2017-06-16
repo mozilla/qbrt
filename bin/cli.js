@@ -44,7 +44,7 @@ const argv = parsedCommands.argv;
 
 switch (command) {
   case 'package':
-    require('../lib/package').packageApp(argv);
+    require('../lib/package')(argv);
     break;
   case 'run':
     require('../lib/run').runApp(argv);
