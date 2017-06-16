@@ -88,7 +88,7 @@ function installRuntime() {
   .then(() => {
     return new Promise((resolve, reject) => {
       function download(url) {
-        https.get(url, function(response) {
+        https.get(url, function (response) {
           if (response.headers.location) {
             let location = response.headers.location;
             // Rewrite Windows installer links to point to the ZIP equivalent,

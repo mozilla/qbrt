@@ -26,7 +26,7 @@ module.exports = {
   rules: {
     'brace-style': ['error', 'stroustrup', { allowSingleLine: true }],
     'comma-dangle': ['error', 'always-multiline'],
-    'indent': [ 'error', 2, { SwitchCase: 1 }],
+    'indent': [ 'error', 2, { SwitchCase: 1, MemberExpression: 0 }],
     'keyword-spacing': ['error'],
     'linebreak-style': ['error', 'unix'],
     'max-len': ['error', { code: 120 }],
@@ -54,6 +54,10 @@ module.exports = {
     'quotes': ['error', 'single'],
     'quote-props': ['error', 'consistent-as-needed'],
     'semi': ['error', 'always', { omitLastInOneLineBlock: true }],
-    'space-before-function-paren': ['error', 'never'],
+    'space-before-function-paren': ['error', {
+      anonymous: 'always',
+      named: 'never',
+      asyncArrow: 'always',
+    }],
   },
 };

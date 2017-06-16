@@ -34,7 +34,7 @@
     "simple-plist": "^0.2.1"
   },
   "devDependencies": {
-    "eslint": "^3.16.1",
+    "eslint": "^4.0.0",
     "file-url": "^2.0.2",
     "tap": "10.3.2"
   }
