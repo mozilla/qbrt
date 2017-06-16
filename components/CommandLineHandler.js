@@ -45,7 +45,7 @@ CommandLineHandler.prototype = {
 
   helpInfo: '',
 
-  handle: function(cmdLine) {
+  handle: function (cmdLine) {
     // Prevent the runtime's default behavior so it doesn't happen in addition
     // to the behavior we specify.  This is disabled because the way we remove
     // browser files means that default behavior no longer occurs.

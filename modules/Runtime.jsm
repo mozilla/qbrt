@@ -72,8 +72,8 @@ this.Runtime = {
     //
     const [type, id, appWindow] = 'outerWindowID' in target ?
       target.getAttribute('type').startsWith('content') ?
-      ['tab', target.outerWindowID, target.ownerGlobal] :
-      ['window', target.outerWindowID, target.ownerGlobal] :
+        ['tab', target.outerWindowID, target.ownerGlobal] :
+        ['window', target.outerWindowID, target.ownerGlobal] :
       ['window', getOuterWindowID(target), target];
 
     const url = `about:devtools-toolbox?type=${type}&id=${id}`;
