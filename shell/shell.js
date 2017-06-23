@@ -18,7 +18,7 @@ const { classes: Cc, interfaces: Ci, results: Cr, utils: Cu } = Components;
 const { Runtime } = Cu.import('resource://qbrt/modules/Runtime.jsm', {});
 const { Services } = Cu.import('resource://gre/modules/Services.jsm', {});
 
-let Accelerators = {
+const Accelerators = {
   isMac: Services.appinfo.OS === 'Darwin',
   keys: {
     i: 73,
@@ -35,9 +35,9 @@ let Accelerators = {
       const cmdR = event.metaKey && event.keyCode === this.keys.r;
       return cmdR;
     }
-    // `Ctrl + Shift + R`.
-    const ctrlShiftR = event.ctrlKey && event.keyCode === this.keys.r;
-    return ctrlShiftR;
+    // `Ctrl + R`.
+    const ctrlR = event.ctrlKey && event.keyCode === this.keys.r;
+    return ctrlR;
   },
   HardReload: function(event) {
     // `Shift + F5`.
@@ -47,8 +47,7 @@ let Accelerators = {
     }
     if (this.isMac) {
       // `Cmd + Shift + R`.
-      const cmdShiftR = event.metaKey && event.shiftKey &&
-        event.keyCode === this.keys.r;
+      const cmdShiftR = event.metaKey && event.shiftKey && event.keyCode === this.keys.r;
       return cmdShiftR;
     }
     // `Ctrl + Shift + R`.
@@ -59,13 +58,11 @@ let Accelerators = {
   ToggleDevTools: function(event) {
     if (this.isMac) {
       // `Cmd + Alt + I`.
-      const cmdAltI = event.metaKey && event.altKey &&
-        event.keyCode === this.keys.i;
+      const cmdAltI = event.metaKey && event.altKey && event.keyCode === this.keys.i;
       return cmdAltI;
     }
     // `Ctrl + Shift + I`.
-    const ctrlShiftI = event.ctrlKey && event.shiftKey &&
-      event.keyCode === this.keys.i;
+    const ctrlShiftI = event.ctrlKey && event.shiftKey && event.keyCode === this.keys.i;
     return ctrlShiftI;
   },
 };
@@ -87,18 +84,15 @@ Shortcuts.prototype.handleEvent = function(event) {
   for (let idx = 0; idx < this.registered.length; idx++) {
     let [ acceleratorName, callback ] = this.registered[idx];
     if (this.testEvent(event, acceleratorName)) {
-      callback();
+      try {
+        callback();
+      }
+      catch (ex) {
+        dump(`error handling event: ${ex}\n`);
+      }
     }
   }
 };
-
-window.addEventListener('load', () => {
-  UI.init();
-}, { once: true });
-
-window.addEventListener('unload', () => {
-  UI.destroy();
-}, { once: true });
 
 const UI = {
   init: () => {
@@ -145,7 +139,6 @@ const UI = {
     const onToolsKeydown = event => {
       // NB: the DevTools window handles its own reload key events,
       // so we don't need to handle them ourselves.
-      // TODO: make this DRY, so we're not repeating ourselves below.
       if (shortcuts.testEvent(event, 'ToggleDevTools')) {
         Runtime.toggleDevTools(browser);
       }
@@ -166,3 +159,6 @@ const UI = {
       false, true);
   },
 };
+
+window.addEventListener('load', UI.init.bind(UI), { once: true });
+window.addEventListener('unload', UI.destroy.bind(UI), { once: true });
