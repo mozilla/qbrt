@@ -25,6 +25,7 @@ const global = this;
 this.Runtime = {
   get commandLineArgs() { return global.commandLineArgs },
   get packageJSON() { return global.packageJSON },
+  get devToolsOpened() { return global.devToolsOpened },
 
   start(appFile, commandLineArgs, packageJSON) {
     // TODO: stop assuming that appFile is in the topmost directory of the app.
@@ -41,6 +42,7 @@ this.Runtime = {
 
     global.commandLineArgs = commandLineArgs;
     global.packageJSON = packageJSON;
+    global.devToolsOpened = new WeakMap();
 
     Services.scriptloader.loadSubScript(`chrome://app/content/${appFile.leafName}`, sandbox, 'UTF-8');
   },
@@ -82,11 +84,13 @@ this.Runtime = {
     const toolsWindow = Services.ww.openWindow(null, url, null, features, null);
 
     const onLoad = () => {
+      global.devToolsOpened.set(target, toolsWindow);
       toolsWindow.removeEventListener('load', onLoad);
       toolsWindow.addEventListener('unload', onUnload);
     };
 
     const onUnload = () => {
+      global.devToolsOpened.delete(target);
       toolsWindow.removeEventListener('unload', onUnload);
       toolsWindow.removeEventListener('message', onMessage);
     };
@@ -110,6 +114,7 @@ this.Runtime = {
       switch (data.name) {
         case 'toolbox-close':
           toolsWindow.close();
+          onUnload();
           break;
         // We get both set-host-title and toolbox-title, and they provide
         // the same title, although their semantics vary.  Weird, but we simply
@@ -128,6 +133,22 @@ this.Runtime = {
     appWindow.addEventListener('close', onTargetClose);
 
     return toolsWindow;
+  },
+
+  closeDevTools(target) {
+    const toolsWindow = this.devToolsOpened.get(target);
+
+    if (toolsWindow) {
+      toolsWindow.close();
+    }
+  },
+
+  toggleDevTools(target) {
+    if (global.devToolsOpened.has(target)) {
+      return this.closeDevTools(target);
+    }
+
+    return this.openDevTools(target);
   },
 
 };
