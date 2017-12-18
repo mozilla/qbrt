@@ -55,7 +55,7 @@ module.exports = {
     'quote-props': ['error', 'consistent-as-needed'],
     'semi': ['error', 'always', { omitLastInOneLineBlock: true }],
     'space-before-function-paren': ['error', {
-      anonymous: 'always',
+      anonymous: 'never',
       named: 'never',
       asyncArrow: 'always',
     }],
