@@ -19,7 +19,7 @@
     "archiver": "^2.0.0",
     "chalk": "^2.0.1",
     "cli": "^1.0.1",
-    "command-line-args": "^4.0.6",
+    "command-line-args": "^5.0.2",
     "command-line-commands": "^2.0.0",
     "command-line-usage": "^4.0.0",
     "decompress": "^4.0.0",
