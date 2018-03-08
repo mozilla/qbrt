@@ -25,9 +25,6 @@ const tap = require('tap');
 
 let exitCode = 0;
 
-// Strangely, the runtime changes --foo to -foo on Mac/Linux but not Windows.
-const expectedOutput = process.platform === 'win32' ? 'console.log: ["--foo","bar"]' : 'console.log: ["-foo","bar"]';
-
 new Promise((resolve, reject) => {
   // Paths are relative to the top-level directory in which `npm test` is run.
   const child = spawn('node', [ path.join('bin', 'cli.js'), 'run',  'test/app-command-line-args/', '--foo', 'bar' ]);
@@ -45,7 +42,7 @@ new Promise((resolve, reject) => {
   });
 
   child.on('close', code => {
-    tap.equal(totalOutput, expectedOutput);
+    tap.equal(totalOutput, 'console.log: ["-foo","bar"]');
     tap.equal(code, 0, 'app exited with success code');
   });
 
