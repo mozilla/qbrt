@@ -26,11 +26,17 @@ tasks:
     payload:
       maxRunTime: 3600
       command:
-          - "git clone {{event.head.repo.url}} repo"
-          - "cd repo"
-          - "git checkout {{event.head.repo.branch}}"
-          - "npm install"
-          - "npm test"
+        - 'set PATH=%CD%\git\cmd;%GOPATH%\bin;%GOROOT%\bin;%PATH%'
+        - "git clone {{event.head.repo.url}} repo"
+        - "cd repo"
+        - "git checkout {{event.head.repo.branch}}"
+        - "npm install"
+        - "npm test"
+      mounts:
+        - content:
+            url: https://github.com/git-for-windows/git/releases/download/v2.16.2.windows.1/MinGit-2.16.2-64-bit.zip
+          directory: git
+          format: zip
   - provisionerId: '{{ taskcluster.docker.provisionerId }}'
     workerType: '{{ taskcluster.docker.workerType }}'
     metadata:
