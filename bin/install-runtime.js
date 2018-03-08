@@ -148,7 +148,7 @@ function installRuntime() {
         }
       })
       .then(() => {
-        const source = path.join(mountPoint, 'FirefoxNightly.app');
+        const source = path.join(mountPoint, 'Firefox Nightly.app');
         // Unlike Windows and Linux, where the destination is the parent dir,
         // on Mac the destination is the installation dir itself, because we've
         // already expanded the archive (DMG) and are copying the dir inside it.
