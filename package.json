@@ -36,6 +36,6 @@
   "devDependencies": {
     "eslint": "^4.0.0",
     "file-url": "^2.0.2",
-    "tap": "^10.7.3"
+    "tap": "^11.1.2"
   }
 }
