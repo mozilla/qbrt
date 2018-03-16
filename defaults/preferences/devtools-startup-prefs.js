@@ -9,31 +9,29 @@
 // Note that this preference file follows Firefox release cycle.
 
 // Enable the JSON View tool (an inspector for application/json documents).
-pref("devtools.jsonview.enabled", true);
+pref('devtools.jsonview.enabled', true);
 
-// Default theme ("dark" or "light")
-//@line 18 "/builds/worker/workspace/build/src/devtools/shim/devtools-startup-prefs.js"
-pref("devtools.theme", "light", sticky);
-//@line 20 "/builds/worker/workspace/build/src/devtools/shim/devtools-startup-prefs.js"
+// Default theme ('dark' or 'light')
+pref('devtools.theme', 'dark');
 
 // Should the devtools toolbar be opened on startup
-pref("devtools.toolbar.visible", false);
+pref('devtools.toolbar.visible', false);
 
 // Pref to drive the devtools onboarding flow experiment. States:
 // - off: forces devtools.enabled to true
 // - on: devtools.enabled is not forced to true.
 // - force: devtools.enabled is not forced to true and cannot be set to true by checking
 //   devtools.selfxss.count. User will have to go through onboarding to use DevTools.
-pref("devtools.onboarding.experiment", "off");
+pref('devtools.onboarding.experiment', 'off');
 
-// If devtools.onboarding.experiment is set to "on" or "force", we will flip the
+// If devtools.onboarding.experiment is set to 'on' or 'force', we will flip the
 // devtools.enabled preference to false once. The flag is used to make sure it is only
 // flipped once.
-pref("devtools.onboarding.experiment.flipped", false);
+pref('devtools.onboarding.experiment.flipped', false);
 
 // Flag to check if we already logged the devtools onboarding related probe.
-pref("devtools.onboarding.telemetry.logged", false);
+pref('devtools.onboarding.telemetry.logged', false);
 
 // Completely disable DevTools entry points, as well as all DevTools command line
 // arguments This should be merged with devtools.enabled, see Bug 1440675.
-pref("devtools.policy.disabled", false);
+pref('devtools.policy.disabled', false);
