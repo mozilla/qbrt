@@ -220,7 +220,8 @@ function installRuntime() {
 
     const prefFiles = [
       'debugger.js',
-      'devtools.js',
+      'devtools-client.js',
+      'devtools-startup.js',
     ];
 
     return Promise.all(prefFiles.map(file => pify(fs.copy)(path.join(sourceDir, file), path.join(targetDir, file))));

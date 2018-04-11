@@ -3,12 +3,16 @@
 # a runtime installation's "resources" dir, which is the installation dir itself
 # on Windows/Linux and its Contents/Resources/ subdirectory on Mac.
 
+content devtools-startup browser/chrome/devtools-startup/content/
 content devtools browser/chrome/devtools/content/
-content devtools-shim browser/chrome/devtools-shim/content/
 skin devtools classic/1.0 browser/chrome/devtools/skin/
 locale devtools en-US browser/chrome/en-US/locale/en-US/devtools/client/
 locale devtools-shared en-US browser/chrome/en-US/locale/en-US/devtools/shared/
+locale devtools-startup en-US browser/chrome/en-US/locale/en-US/devtools/startup/
+
 resource devtools browser/chrome/devtools/modules/devtools/
+resource devtools-client-jsonview resource://devtools/client/jsonview/ contentaccessible=yes
+resource devtools-client-shared resource://devtools/client/shared/ contentaccessible=yes
 
 # The location of the jsinspector interface depends on how the runtime
 # is packaged.  In a downloaded nightly build, it's in interfaces.xpt,
