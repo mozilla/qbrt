@@ -22,7 +22,7 @@ require('promise.prototype.finally').shim();
 const chalk = require('chalk');
 const cli = require('cli');
 const decompress = require('decompress');
-// const extract = require('extract-zip');
+const extract = require('extract-zip');
 const fs = require('fs-extra');
 const https = require('https');
 const os = require('os');
@@ -61,9 +61,9 @@ const downloadOS = (() => {
 const downloadURL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${downloadOS}`;
 const distDir = path.join(__dirname, '..', 'dist', process.platform);
 const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
-// const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
+const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
 const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
-// const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
+const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
 
 const fileExtensions = {
   'application/x-apple-diskimage': 'dmg',
@@ -197,38 +197,35 @@ function installRuntime() {
   .then(() => {
     return installXULApp();
   })
+  .then(() => {
+    // Expand the browser xulapp's JAR archive so we can access its devtools.
+    // We have to expand it into a subdirectory of qbrt's xulapp directory,
+    // because chrome manifests can't reference super-directories.
 
-  // DISABLED because https://bugzilla.mozilla.org/show_bug.cgi?id=1352595
-  // breaks decompression with extract-zip too.
-  // .then(() => {
-  //   // Expand the browser xulapp's JAR archive so we can access its devtools.
-  //   // We have to expand it into a subdirectory of qbrt's xulapp directory,
-  //   // because chrome manifests can't reference super-directories.
+    // TODO: limit expansion to browser files that are necessary for devtools.
 
-  //   // TODO: limit expansion to browser files that are necessary for devtools.
+    const targetDir = path.join(resourcesDir, 'qbrt', 'browser');
 
-  //   const targetDir = path.join(resourcesDir, 'qbrt', 'browser');
+    // "decompress" fails silently on omni.ja, so we use extract-zip here instead.
+    // TODO: figure out the issue with "decompress" (f.e. that the .ja file
+    // extension is unrecognized or that the chrome.manifest file in the archive
+    // conflicts with the one already on disk).
+    return pify(extract)(browserJAR, { dir: targetDir });
+  })
+  .then(() => {
+    // Copy devtools pref files from browser to qbrt.
 
-  //   // "decompress" fails silently on omni.ja, so we use extract-zip here instead.
-  //   // TODO: figure out the issue with "decompress" (f.e. that the .ja file
-  //   // extension is unrecognized or that the chrome.manifest file in the archive
-  //   // conflicts with the one already on disk).
-  //   return pify(extract)(browserJAR, { dir: targetDir });
-  // })
-  // .then(() => {
-  //   // Copy devtools pref files from browser to qbrt.
+    const sourceDir = path.join(resourcesDir, 'qbrt', 'browser', 'defaults', 'preferences');
+    const targetDir = path.join(resourcesDir, 'qbrt', 'defaults', 'preferences');
 
-  //   const sourceDir = path.join(resourcesDir, 'qbrt', 'browser', 'defaults', 'preferences');
-  //   const targetDir = path.join(resourcesDir, 'qbrt', 'defaults', 'preferences');
+    const prefFiles = [
+      'debugger.js',
+      'devtools-client.js',
+      'devtools-startup.js',
+    ];
 
-  //   const prefFiles = [
-  //     'debugger.js',
-  //     'devtools.js',
-  //   ];
-
-  //   return Promise.all(prefFiles.map(file => pify(fs.copy)(path.join(sourceDir, file), path.join(targetDir, file))));
-  // })
-
+    return Promise.all(prefFiles.map(file => pify(fs.copy)(path.join(sourceDir, file), path.join(targetDir, file))));
+  })
   .then(() => {
     // Copy and configure the stub executable.
 

@@ -56,7 +56,6 @@ function loadDevToolsWindow(target) {
 
 const targets = [
   document.getElementById('browser-chrome'),
-  document.getElementById('browser-content-primary'),
   document.getElementById('browser-content'),
   window,
 ];

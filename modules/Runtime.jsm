@@ -48,94 +48,91 @@ this.Runtime = {
   },
 
   openDevTools(target) {
-    dump('DevTools disabled due to https://github.com/mozilla/qbrt/issues/132\n');
-    return;
+    // TODO: When tools can be opened inside the target window, support
+    // `detach` option to force into a new window instead.
 
-    // // TODO: When tools can be opened inside the target window, support
-    // // `detach` option to force into a new window instead.
+    // Ensure DevTools core modules are loaded, including support for the about
+    // URL below which is registered dynamically.
+    const { loader } = Cu.import('resource://devtools/shared/Loader.jsm', {});
+    loader.require('devtools/client/framework/devtools-browser');
 
-    // // Ensure DevTools core modules are loaded, including support for the about
-    // // URL below which is registered dynamically.
-    // const { loader } = Cu.import('resource://devtools/shared/Loader.jsm', {});
-    // loader.require('devtools/client/framework/devtools-browser');
+    // The current approach below avoids the need for a container window
+    // wrapping a tools frame, but it does replicate close handling, etc.
+    // Historically we would have used toolbox-hosts.js to handle this,
+    // but DevTools will be moving away from that, and so it seems fine
+    // to experiment with toolbox management here.
 
-    // // The current approach below avoids the need for a container window
-    // // wrapping a tools frame, but it does replicate close handling, etc.
-    // // Historically we would have used toolbox-hosts.js to handle this,
-    // // but DevTools will be moving away from that, and so it seems fine
-    // // to experiment with toolbox management here.
+    // Determine the target's type, id, and associated application window
+    // (which could be the target itself).  Currently we support targets
+    // that are <xul:browser> elements (i.e. have a outerWindowID property)
+    // and those that are ChromeWindow (i.e. don't have such a property).
+    //
+    // We also distinguish between <xul:browser> elements that are
+    // type="content*" and those that are not (and therefore chrome),
+    // as the latter need their type set to "window", because:
+    // http://searchfox.org/mozilla-central/rev/fcd9f14/devtools/server/actors/webbrowser.js#329-333.
+    //
+    const [type, id, appWindow] = 'outerWindowID' in target ?
+      target.getAttribute('type').startsWith('content') ?
+        ['tab', target.outerWindowID, target.ownerGlobal] :
+        ['window', target.outerWindowID, target.ownerGlobal] :
+      ['window', getOuterWindowID(target), target];
 
-    // // Determine the target's type, id, and associated application window
-    // // (which could be the target itself).  Currently we support targets
-    // // that are <xul:browser> elements (i.e. have a outerWindowID property)
-    // // and those that are ChromeWindow (i.e. don't have such a property).
-    // //
-    // // We also distinguish between <xul:browser> elements that are
-    // // type="content*" and those that are not (and therefore chrome),
-    // // as the latter need their type set to "window", because:
-    // // http://searchfox.org/mozilla-central/rev/fcd9f14/devtools/server/actors/webbrowser.js#329-333.
-    // //
-    // const [type, id, appWindow] = 'outerWindowID' in target ?
-    //   target.getAttribute('type').startsWith('content') ?
-    //     ['tab', target.outerWindowID, target.ownerGlobal] :
-    //     ['window', target.outerWindowID, target.ownerGlobal] :
-    //   ['window', getOuterWindowID(target), target];
+    const url = `about:devtools-toolbox?type=${type}&id=${id}`;
 
-    // const url = `about:devtools-toolbox?type=${type}&id=${id}`;
+    const features = 'chrome,resizable,centerscreen,width=1024,height=768';
+    const toolsWindow = Services.ww.openWindow(null, url, null, features, null);
 
-    // const features = 'chrome,resizable,centerscreen,width=1024,height=768';
-    // const toolsWindow = Services.ww.openWindow(null, url, null, features, null);
+    const onLoad = () => {
+      global.devToolsOpened.set(target, toolsWindow);
+      toolsWindow.removeEventListener('load', onLoad);
+      toolsWindow.addEventListener('unload', onUnload);
+    };
 
-    // const onLoad = () => {
-    //   global.devToolsOpened.set(target, toolsWindow);
-    //   toolsWindow.removeEventListener('load', onLoad);
-    //   toolsWindow.addEventListener('unload', onUnload);
-    // };
+    const onUnload = () => {
+      global.devToolsOpened.delete(target);
+      toolsWindow.removeEventListener('unload', onUnload);
+      toolsWindow.removeEventListener('message', onMessage);
+    };
 
-    // const onUnload = () => {
-    //   global.devToolsOpened.delete(target);
-    //   toolsWindow.removeEventListener('unload', onUnload);
-    //   toolsWindow.removeEventListener('message', onMessage);
-    // };
+    // Close the DevTools window if the target window closes.
+    const onTargetClose = () => {
+      toolsWindow.close();
+    };
 
-    // // Close the DevTools window if the target window closes.
-    // const onTargetClose = () => {
-    //   toolsWindow.close();
-    // };
+    // Listen for the toolbox's built-in close button, which sends a message
+    // asking the toolbox's opener how to handle things.  In this case, just
+    // close the toolbox.
+    const onMessage = ({ data }) => {
+      // Sometimes `data` is a String (f.e. on toolbox-title or toolbox-close),
+      // while other times it's an Object (f.e. on set-host-title), which feels
+      // like an upstream bug.  Anyway, for now we parse it conditionally.
+      if (typeof data === 'string') {
+        data = JSON.parse(data);
+      }
 
-    // // Listen for the toolbox's built-in close button, which sends a message
-    // // asking the toolbox's opener how to handle things.  In this case, just
-    // // close the toolbox.
-    // const onMessage = ({ data }) => {
-    //   // Sometimes `data` is a String (f.e. on toolbox-title or toolbox-close),
-    //   // while other times it's an Object (f.e. on set-host-title), which feels
-    //   // like an upstream bug.  Anyway, for now we parse it conditionally.
-    //   if (typeof data === 'string') {
-    //     data = JSON.parse(data);
-    //   }
+      switch (data.name) {
+        case 'toolbox-close':
+          toolsWindow.close();
+          onUnload();
+          break;
+        // We get both set-host-title and toolbox-title, and they provide
+        // the same title, although their semantics vary.  Weird, but we simply
+        // ignore one and use the other.
+        case 'set-host-title':
+          toolsWindow.document.title = data.title;
+          break;
+        // case 'toolbox-title':
+        //   toolsWindow.document.title = data.data.value;
+        //   break;
+      }
+    };
 
-    //   switch (data.name) {
-    //     case 'toolbox-close':
-    //       toolsWindow.close();
-    //       onUnload();
-    //       break;
-    //     // We get both set-host-title and toolbox-title, and they provide
-    //     // the same title, although their semantics vary.  Weird, but we simply
-    //     // ignore one and use the other.
-    //     case 'set-host-title':
-    //       toolsWindow.document.title = data.title;
-    //       break;
-    //     // case 'toolbox-title':
-    //     //   toolsWindow.document.title = data.data.value;
-    //     //   break;
-    //   }
-    // };
+    toolsWindow.addEventListener('message', onMessage);
+    toolsWindow.addEventListener('load', onLoad);
+    appWindow.addEventListener('close', onTargetClose);
 
-    // toolsWindow.addEventListener('message', onMessage);
-    // toolsWindow.addEventListener('load', onLoad);
-    // appWindow.addEventListener('close', onTargetClose);
-
-    // return toolsWindow;
+    return toolsWindow;
   },
 
   closeDevTools(target) {
@@ -175,6 +172,6 @@ function registerChromePrefix(appDir) {
   tempFile.remove(false);
 }
 
-// function getOuterWindowID(window) {
-//   return window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
-// }
+function getOuterWindowID(window) {
+  return window.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils).outerWindowID;
+}
