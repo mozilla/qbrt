@@ -18,9 +18,6 @@
 <window id="main-window" windowtype="navigator:browser"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <browser id="browser-content-primary" type="content-primary" flex="1"
-           src="data:text/plain;charset=US-ASCII,browser-content-primary"/>
-
   <browser id="browser-content" type="content" flex="1"
            src="data:text/plain;charset=US-ASCII,browser-content"/>
 
