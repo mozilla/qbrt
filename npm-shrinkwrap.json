@@ -246,9 +246,9 @@
       }
     },
     "big-integer": {
-      "version": "1.6.27",
-      "resolved": "https://registry.npmjs.org/big-integer/-/big-integer-1.6.27.tgz",
-      "integrity": "sha512-NzUKMYW4SWme+H5K+mfEmBxEF/V04PhlzoxxXwSnDig78y2t7HLBVotfDBMUhRPRA3WWID3GmJB/OJSWPhVXtg=="
+      "version": "1.6.28",
+      "resolved": "https://registry.npmjs.org/big-integer/-/big-integer-1.6.28.tgz",
+      "integrity": "sha512-OJT3rzgtsYca/5WmmEuFJDPMwROVh5SSjoEX9wIrpfbbWJ4KqRzShs8Cj6jWHaatBYAeWngBA+kmmrcHSklT1g=="
     },
     "bind-obj-methods": {
       "version": "2.0.0",
@@ -293,7 +293,7 @@
       "resolved": "https://registry.npmjs.org/bplist-parser/-/bplist-parser-0.1.1.tgz",
       "integrity": "sha1-1g1dzCDLptx+HymbNdPh+V2vuuY=",
       "requires": {
-        "big-integer": "1.6.27"
+        "big-integer": "1.6.28"
       }
     },
     "brace-expansion": {
@@ -4980,19 +4980,19 @@
       }
     },
     "plist": {
-      "version": "2.0.1",
-      "resolved": "https://registry.npmjs.org/plist/-/plist-2.0.1.tgz",
-      "integrity": "sha1-CjLKlIGxw2TpLhjcVch23p0B2os=",
+      "version": "2.1.0",
+      "resolved": "https://registry.npmjs.org/plist/-/plist-2.1.0.tgz",
+      "integrity": "sha1-V8zbeggh3yGDEhejytVOPhRqECU=",
       "requires": {
-        "base64-js": "1.1.2",
+        "base64-js": "1.2.0",
         "xmlbuilder": "8.2.2",
         "xmldom": "0.1.27"
       },
       "dependencies": {
         "base64-js": {
-          "version": "1.1.2",
-          "resolved": "https://registry.npmjs.org/base64-js/-/base64-js-1.1.2.tgz",
-          "integrity": "sha1-1kAMrBxMZgl22Q0HoENR2JOV9eg="
+          "version": "1.2.0",
+          "resolved": "https://registry.npmjs.org/base64-js/-/base64-js-1.2.0.tgz",
+          "integrity": "sha1-o5mS1yNYSBGYK+XikLtqU9hnAPE="
         }
       }
     },
@@ -5225,13 +5225,13 @@
       "dev": true
     },
     "simple-plist": {
-      "version": "0.2.1",
-      "resolved": "https://registry.npmjs.org/simple-plist/-/simple-plist-0.2.1.tgz",
-      "integrity": "sha1-cXZts1IyaSjPOoByQrp2IyJjZyM=",
+      "version": "0.3.0",
+      "resolved": "https://registry.npmjs.org/simple-plist/-/simple-plist-0.3.0.tgz",
+      "integrity": "sha512-zHzV7TxUsVzHv8Nt+eStifDNCNIOuS92POdFf/5MHAxtWA7IASzVawCasxNIT4bn5IfrrnMB1eXpagJMLWbG5w==",
       "requires": {
         "bplist-creator": "0.0.7",
         "bplist-parser": "0.1.1",
-        "plist": "2.0.1"
+        "plist": "2.1.0"
       }
     },
     "slice-ansi": {
