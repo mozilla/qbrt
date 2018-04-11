@@ -380,7 +380,7 @@ function displayHelp() {
       ],
     },
     {
-      content: `Project home: [underline]{${packageJson.homepage}}`,
+      content: `Project home: {underline ${packageJson.homepage}}`,
     },
   ];
 
