@@ -6,37 +6,31 @@ metadata:
   owner: '{{ event.head.user.email }}'
   source: '{{ event.head.repo.url }}'
 tasks:
-  - provisionerId: "{{ taskcluster.docker.provisionerId }}"
-    metadata:
-      name: qbrt test Windows
-      description: qbrt automated test suite on Windows
-      owner: "{{ event.head.user.email }}"
-      source: "{{ event.head.repo.url }}"
-    workerType: "win2012r2"
-    extra:
-      github:
-        env: true
-        events:
-          - pull_request.opened
-          - pull_request.closed
-          - pull_request.synchronize
-          - pull_request.reopened
-          - push
-          - release
-    payload:
-      maxRunTime: 3600
-      command:
-        - 'set PATH=%CD%\git\cmd;%GOPATH%\bin;%GOROOT%\bin;%PATH%'
-        - "git clone {{event.head.repo.url}} repo"
-        - "cd repo"
-        - "git checkout {{event.head.repo.branch}}"
-        - "npm install"
-        - "npm test"
-      mounts:
-        - content:
-            url: https://github.com/git-for-windows/git/releases/download/v2.16.2.windows.1/MinGit-2.16.2-64-bit.zip
-          directory: git
-          format: zip
+  # - provisionerId: "{{ taskcluster.docker.provisionerId }}"
+  #   metadata:
+  #     name: qbrt test Windows
+  #     description: qbrt automated test suite on Windows
+  #     owner: "{{ event.head.user.email }}"
+  #     source: "{{ event.head.repo.url }}"
+  #   workerType: "win2012r2"
+  #   extra:
+  #     github:
+  #       env: true
+  #       events:
+  #         - pull_request.opened
+  #         - pull_request.closed
+  #         - pull_request.synchronize
+  #         - pull_request.reopened
+  #         - push
+  #         - release
+  #   payload:
+  #     maxRunTime: 3600
+  #     command:
+  #         - "git clone {{event.head.repo.url}} repo"
+  #         - "cd repo"
+  #         - "git checkout {{event.head.repo.branch}}"
+  #         - "npm install"
+  #         - "npm test"
   - provisionerId: '{{ taskcluster.docker.provisionerId }}'
     workerType: '{{ taskcluster.docker.workerType }}'
     metadata:

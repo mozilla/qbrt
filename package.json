@@ -1,6 +1,6 @@
 {
   "name": "qbrt",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "description": "a Mozilla runtime",
   "author": "Myk Melez <myk@mykzilla.org>",
   "license": "Apache-2.0",
@@ -21,7 +21,7 @@
     "cli": "^1.0.1",
     "command-line-args": "^5.0.2",
     "command-line-commands": "^2.0.0",
-    "command-line-usage": "^4.0.0",
+    "command-line-usage": "^5.0.0",
     "decompress": "^4.0.0",
     "extract-zip": "^1.6.5",
     "fs-extra": "^5.0.0",
@@ -31,11 +31,11 @@
     "promise.prototype.finally": "^3.0.0",
     "read-pkg-up": "^3.0.0",
     "semver": "^5.3.0",
-    "simple-plist": "^0.2.1"
+    "simple-plist": "^0.3.0"
   },
   "devDependencies": {
     "eslint": "^4.0.0",
     "file-url": "^2.0.2",
-    "tap": "^10.7.3"
+    "tap": "^11.1.2"
   }
 }
