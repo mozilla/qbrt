@@ -31,10 +31,21 @@ const path = require('path');
 const pify = require('pify');
 const plist = require('simple-plist');
 const installXULApp = require('./install-xulapp');
+const { getPlatformDirectories } = require('./directory-utils');
 const spawn = require('child_process').spawn;
 
-const downloadOS = (() => {
-  switch (process.platform) {
+
+const downloadURLBase = 'https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US';
+
+const fileExtensions = {
+  'application/x-apple-diskimage': 'dmg',
+  'application/zip': 'zip',
+  'application/x-tar': 'tar.bz2',
+};
+
+// TODO: Download architecture should not be based on current process architecture.
+function getDownloadOS(platform) {
+  switch (platform) {
     case 'win32':
       switch (process.arch) {
         case 'ia32':
@@ -56,23 +67,13 @@ const downloadOS = (() => {
     case 'darwin':
       return 'osx';
   }
-})();
+}
 
-const downloadURL = `https://download.mozilla.org/?product=firefox-nightly-latest-ssl&lang=en-US&os=${downloadOS}`;
-const distDir = path.join(__dirname, '..', 'dist', process.platform);
-const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
-const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
-const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
-const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
-
-const fileExtensions = {
-  'application/x-apple-diskimage': 'dmg',
-  'application/zip': 'zip',
-  'application/x-tar': 'tar.bz2',
-};
-
-function installRuntime() {
+function installRuntime(platform=process.platform) {
   let tempDir, mountPoint, filePath, fileStream;
+
+  const { distDir, installDir, resourcesDir, executableDir } = getPlatformDirectories(platform);
+  const browserJAR = path.join(resourcesDir, 'browser', 'omni.ja');
 
   return Promise.resolve()
   .then(() => {
@@ -94,7 +95,7 @@ function installRuntime() {
             // Rewrite Windows installer links to point to the ZIP equivalent,
             // since it's hard to expand the installer programmatically (requires
             // a Node implementation of 7zip).
-            if (process.platform === 'win32') {
+            if (platform === 'win32') {
               location = location.replace(/\.installer\.exe$/, '.zip');
             }
             download(location);
@@ -104,7 +105,7 @@ function installRuntime() {
           }
         }).on('error', reject);
       }
-      download(downloadURL);
+      download(`${downloadURLBase}&os=${getDownloadOS(platform)}`);
     });
   })
   .then((response) => {
@@ -119,7 +120,7 @@ function installRuntime() {
     });
   })
   .then(() => {
-    if (process.platform === 'win32') {
+    if (platform === 'win32') {
       const source = filePath;
       const destination = distDir;
       return pify(fs.remove)(path.join(destination, 'runtime'))
@@ -130,7 +131,7 @@ function installRuntime() {
         return pify(fs.rename)(path.join(destination, 'firefox'), path.join(destination, 'runtime'));
       });
     }
-    else if (process.platform === 'darwin') {
+    else if (platform === 'darwin') {
       return (new Promise((resolve, reject) => {
         const child = spawn(
           'hdiutil',
@@ -182,7 +183,7 @@ function installRuntime() {
         }
       });
     }
-    else if (process.platform === 'linux') {
+    else if (platform === 'linux') {
       const source = filePath;
       const destination = distDir;
       return pify(fs.remove)(path.join(destination, 'runtime'))
@@ -195,7 +196,7 @@ function installRuntime() {
     }
   })
   .then(() => {
-    return installXULApp();
+    return installXULApp(platform);
   })
   .then(() => {
     // Expand the browser xulapp's JAR archive so we can access its devtools.
@@ -229,7 +230,7 @@ function installRuntime() {
   .then(() => {
     // Copy and configure the stub executable.
 
-    switch (process.platform) {
+    switch (platform) {
       case 'win32': {
         // Copy the stub executable to the executable dir.
         return pify(fs.copy)(path.join(__dirname, '..', 'launcher.bat'), path.join(executableDir, 'launcher.bat'));
@@ -263,7 +264,12 @@ function installRuntime() {
   });
 }
 
-module.exports = installRuntime;
+function isRuntimeInstalled(platform=process.platform) {
+  const { distDir } = getPlatformDirectories(platform);
+  return fs.existsSync(distDir);
+}
+
+module.exports = { isRuntimeInstalled, installRuntime };
 
 if (require.main === module) {
   let exitCode = 0;

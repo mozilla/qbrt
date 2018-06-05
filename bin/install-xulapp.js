@@ -24,18 +24,16 @@ const cli = require('cli');
 const fs = require('fs-extra');
 const path = require('path');
 const pify = require('pify');
+const { getPlatformDirectories } = require('./directory-utils');
 
-const distDir = path.join(__dirname, '..', 'dist', process.platform);
-const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
-const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
-
-function installXULApp() {
+function installXULApp(platform=process.platform) {
   // Copy the qbrt xulapp to the target directory.
 
   // TODO: move qbrt xulapp files into a separate source directory
   // that we can copy in one fell swoop.
 
   const sourceDir = path.join(__dirname, '..');
+  const { resourcesDir } = getPlatformDirectories(platform);
   const targetDir = path.join(resourcesDir, 'qbrt');
 
   const files = [
