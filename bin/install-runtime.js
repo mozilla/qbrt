@@ -43,7 +43,6 @@ const fileExtensions = {
   'application/x-tar': 'tar.bz2',
 };
 
-// TODO: Download architecture should not be based on current process architecture.
 function getDownloadOS(platform) {
   switch (platform) {
     case 'win32':
