@@ -21,7 +21,7 @@ require('promise.prototype.finally').shim();
 
 const chalk = require('chalk');
 const cli = require('cli');
-const installRuntime = require('./install-runtime');
+const { installRuntime } = require('./install-runtime');
 
 let exitCode = 0;
 
