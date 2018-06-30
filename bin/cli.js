@@ -34,9 +34,7 @@ const pify = require('pify');
 const readPkgUp = require('read-pkg-up');
 const semver = require('semver');
 const spawn = require('child_process').spawn;
-
-const distDir = path.join(__dirname, '..', 'dist', process.platform);
-const installDir = path.join(distDir, process.platform === 'darwin' ? 'Runtime.app' : 'runtime');
+const { getPlatformDirectories } = require('./directory-utils');
 
 const validCommands = [ null, 'package', 'run', 'version', 'help', 'update' ];
 let parsedCommands = {};
@@ -90,7 +88,7 @@ function runApp() {
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv, partial: true });
 
-  const executableDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'MacOS') : installDir;
+  const { installDir, executableDir } = getPlatformDirectories(process.platform);
   let executable = path.join(executableDir, `firefox${process.platform === 'win32' ? '.exe' : ''}`);
   const resourcesDir = process.platform === 'darwin' ? path.join(installDir, 'Contents', 'Resources') : installDir;
   const applicationIni = path.join(resourcesDir, 'qbrt', 'application.ini');
@@ -189,10 +187,25 @@ function runApp() {
 function packageApp() {
   const optionDefinitions = [
     { name: 'path', alias: 'p', type: String, defaultOption: true, defaultValue: argv[0] || process.cwd() },
+    { name: 'win', type: Boolean },
+    { name: 'linux', type: Boolean },
   ];
   const options = commandLineArgs(optionDefinitions, { argv: argv });
   const shellDir = path.join(__dirname, '..', 'shell');
   const appSourceDir = fs.existsSync(options.path) ? path.resolve(options.path) : shellDir;
+
+  let platform = process.platform;
+  if (options.win && options.linux) {
+    throw new Error('Cannot package windows and linux packages simultaneously.');
+  }
+  if (options.win) {
+    platform = 'win32';
+  }
+  if (options.linux) {
+    platform = 'linux';
+  }
+  const { installDir } = getPlatformDirectories(platform);
+
   let appName;
   let appPackageJson;
   let appTargetDir;
@@ -201,12 +214,24 @@ function packageApp() {
   let tempDir;
   let stageDir;
 
-  readProjectMetadata(appSourceDir, function transformer(appPackageResult) {
-    // `productName` is a key commonly used in `package.json` files of Electron apps.
-    appPackageResult.pkg.name = appPackageResult.pkg.productName || appPackageResult.pkg.name ||
-      path.basename(appSourceDir);
-    return appPackageResult;
-  })
+  const { isRuntimeInstalled, installRuntime } = require('./install-runtime');
+
+  let runtimeCheck;
+  if (isRuntimeInstalled(platform)) {
+    runtimeCheck = Promise.resolve();
+  }
+  else {
+    runtimeCheck = installRuntime(platform);
+  }
+
+  runtimeCheck.then(() => 
+    readProjectMetadata(appSourceDir, function transformer(appPackageResult) {
+      // `productName` is a key commonly used in `package.json` files of Electron apps.
+      appPackageResult.pkg.name = appPackageResult.pkg.productName || appPackageResult.pkg.name ||
+        path.basename(appSourceDir);
+      return appPackageResult;
+    })
+  )
   .then(appPackageResult => {
     return appPackageResult;
   }, error => {
@@ -218,7 +243,7 @@ function packageApp() {
     appName = appPackageJson.name;
     appVersion = appPackageJson.version;
     packageFile = `${appName}.` + (appVersion ? `v${appVersion}.` : '') +
-      { win32: 'zip', darwin: 'dmg', linux: 'tgz' }[process.platform];
+      { win32: 'zip', darwin: 'dmg', linux: 'tgz' }[platform];
     cli.spinner(`  Packaging ${options.path} -> ${packageFile} …`);
     return appPackageJson;
   })
@@ -227,9 +252,9 @@ function packageApp() {
   })
   .then(tempDirArg => {
     tempDir = tempDirArg;
-    const stageDirName = process.platform === 'darwin' ? `${appName}.app` : appName;
+    const stageDirName = platform === 'darwin' ? `${appName}.app` : appName;
     stageDir = path.join(tempDir, stageDirName);
-    appTargetDir = process.platform === 'darwin' ?
+    appTargetDir = platform === 'darwin' ?
       path.join(stageDir, 'Contents', 'Resources', 'webapp') :
       path.join(stageDir, 'webapp');
   })
@@ -239,14 +264,14 @@ function packageApp() {
   })
   .then(() => {
     // Rename launcher script to the app's name.
-    const exeDir = process.platform === 'darwin' ? path.join(stageDir, 'Contents', 'MacOS') : stageDir;
-    const source = path.join(exeDir, process.platform === 'win32' ? 'launcher.bat' : 'launcher.sh');
-    const target = path.join(exeDir, process.platform === 'win32' ? `${appName}.bat` : appName);
+    const exeDir = platform === 'darwin' ? path.join(stageDir, 'Contents', 'MacOS') : stageDir;
+    const source = path.join(exeDir, platform === 'win32' ? 'launcher.bat' : 'launcher.sh');
+    const target = path.join(exeDir, platform === 'win32' ? `${appName}.bat` : appName);
     return pify(fs.move)(source, target);
   })
   .then(() => {
     // Update the Info.plist file with the new name of the launcher script.
-    if (process.platform === 'darwin') {
+    if (platform === 'darwin') {
       const plist = require('simple-plist');
       const plistFile = path.join(stageDir, 'Contents', 'Info.plist');
       return pify(plist.readFile)(plistFile)
@@ -268,7 +293,7 @@ function packageApp() {
     });
   })
   .then(() => {
-    if (process.platform === 'darwin') {
+    if (platform === 'darwin') {
       const hdiutilArgs = ['create', '-srcfolder', stageDir];
       return new Promise((resolve, reject) => {
         // macOS 10.9 (Mavericks) has a bug in hdiutil that causes image
@@ -302,7 +327,7 @@ function packageApp() {
         });
       });
     }
-    else if (process.platform === 'linux') {
+    else if (platform === 'linux') {
       const archiver = require('archiver');
       return new Promise((resolve, reject) => {
         const tarFile = fs.createWriteStream(packageFile);
@@ -314,7 +339,7 @@ function packageApp() {
         archive.finalize();
       });
     }
-    else if (process.platform === 'win32') {
+    else if (platform === 'win32') {
       const archiver = require('archiver');
       return new Promise((resolve, reject) => {
         const zipFile = fs.createWriteStream(packageFile);
@@ -389,7 +414,7 @@ function displayHelp() {
 }
 
 function updateRuntime() {
-  const installRuntime = require('./install-runtime');
+  const { installRuntime } = require('./install-runtime');
   let exitCode = 0;
   cli.spinner('  Updating runtime …');
   installRuntime()
