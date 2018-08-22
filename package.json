@@ -16,7 +16,7 @@
     "test": "eslint --ext .js,.jsm . && tap test/*.js --cov --timeout=600"
   },
   "dependencies": {
-    "archiver": "^2.0.0",
+    "archiver": "^3.0.0",
     "chalk": "^2.0.1",
     "cli": "^1.0.1",
     "command-line-args": "^5.0.2",
